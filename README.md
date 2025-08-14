@@ -1,7 +1,4 @@
-# MathData25
-
-
-# Mathematics of Data Science – Tool Setup Guide (Semester Instructions)
+# Mathematics of Data Science – Tool Setup Guide 
 
 Welcome to the Mathematics of Data Science course!  
 This guide will help you set up all the tools we will use this semester:
