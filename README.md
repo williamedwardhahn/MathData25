@@ -4,6 +4,8 @@
 
 [The Computer Programme (2): Just One Thing After Another](https://www.youtube.com/watch?v=OFUHjDhTIJg)
 
+[The Computer Programme (3): Talking To A Machine (Programming Languages)](https://www.youtube.com/watch?v=7Mr3Csyb0Qw)
+
 
 
 ## Demos
