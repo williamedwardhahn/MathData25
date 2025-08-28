@@ -1,6 +1,6 @@
 # Links
 ## Video Links
-[The Computer Programme (1): It's Happening Now] (https://www.youtube.com/watch?v=jtMWEiCdsfc)
+[The Computer Programme (1): It's Happening Now](https://www.youtube.com/watch?v=jtMWEiCdsfc)
 
 
 [Demos 1](https://docs.google.com/document/d/1xf0PaTv_Pc2hxcHCOmVNEVzL_oX9RWF4T6JbAlzSiU8/edit?usp=sharing)
