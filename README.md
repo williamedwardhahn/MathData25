@@ -1,3 +1,9 @@
+# Links
+
+[Demos 1](https://docs.google.com/document/d/1xf0PaTv_Pc2hxcHCOmVNEVzL_oX9RWF4T6JbAlzSiU8/edit?usp=sharing)
+
+
+
 # Mathematics of Data Science – Tool Setup Guide 
 
 Welcome to the Mathematics of Data Science course!  
