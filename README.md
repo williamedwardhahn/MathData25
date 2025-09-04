@@ -11,6 +11,9 @@
 
 [Mathematics](https://www.youtube.com/watch?v=gV67Sj2jkVg)
 
+[Alexnet](https://www.youtube.com/watch?v=AgkfIQ4IGaM)
+
+
 
 ## Demos
 [Demos 1](https://docs.google.com/document/d/1xf0PaTv_Pc2hxcHCOmVNEVzL_oX9RWF4T6JbAlzSiU8/edit?usp=sharing)
