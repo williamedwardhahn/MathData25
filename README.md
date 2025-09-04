@@ -1,4 +1,7 @@
 # Links
+## Notebooks
+[Load Data from Github](https://colab.research.google.com/drive/1ntd-gp2X1rplBODZOs1tAE-3BqqvxSS1?usp=sharing)
+
 ## Video Links
 [The Computer Programme (1): It's Happening Now](https://www.youtube.com/watch?v=jtMWEiCdsfc)
 
