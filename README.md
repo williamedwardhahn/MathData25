@@ -6,6 +6,9 @@
 
 ## Interactive Labs
 [Bit Depth](https://williamedwardhahn.github.io/MathData25/bit_depth.html)
+
+[Pixel Combinatorics](https://williamedwardhahn.github.io/MathData25/pixelcombo.html)
+
 [Convolution](https://williamedwardhahn.github.io/MathData25/Conv1_a.html)
 
 
