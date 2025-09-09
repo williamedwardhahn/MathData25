@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Convolution Explorer – learn image kernels interactively</title>
+  <style>
+    :root{
+      --bg:#0b0d12;
+      --panel:#121621;
+      --muted:#8b93a7;
+      --text:#e9edf5;
+      --accent:#7aa2ff;
+      --accent-2:#ff4d4d;
+      --danger:#ff6b81;
+      --success:#4caf50;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,#0b0d12,#0e1320);
+      color:var(--text);
+      font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      min-height:100vh;
+    }
+    a{color:var(--accent)}
+    header{
+      display:flex;
+      gap:16px;
+      align-items:center;
+      justify-content:space-between;
+      padding:18px 22px;
+      border-bottom:1px solid #1d2333;
+      background:rgba(10,14,25,.7);
+      backdrop-filter:saturate(140%) blur(6px);
+      position:sticky;
+      top:0;
+      z-index:10;
+      width:100%;
+      max-width:1400px;
+    }
+    h1{font-size:22px;margin:0;font-weight:700;letter-spacing:.2px}
+    .container{max-width:1400px;margin:20px auto;padding:0 16px;width:100%}
+    .row{display:grid;grid-template-columns: 360px 1fr;gap:18px}
+    @media (max-width: 768px) {
+      .row{grid-template-columns: 1fr}
+    }
+    .panel{
+      background:var(--panel);
+      border:1px solid #242a3b;
+      border-radius:16px;
+      padding:16px;
+      box-shadow:0 8px 30px rgba(0,0,0,.25);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .panel:hover{
+      transform:translateY(-2px);
+      box-shadow:0 12px 40px rgba(0,0,0,.3);
+    }
+    .panel h2{font-size:16px;margin:0 0 10px 0;color:#bfc7dc}
+    .panel .sub{font-size:12px;color:var(--muted);margin:4px 0 12px}
+
+    .controls{display:grid;gap:10px}
+    label{font-size:12px;color:#b7bfd6;font-weight:500}
+    select,input[type="number"],input[type="file"],button{
+      width:100%;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #2a3046;
+      background:#0f1424;
+      color:var(--text);
+      transition: border-color 0.2s;
+    }
+    select:hover,input:hover,button:hover{border-color:#3b4672}
+    button{
+      cursor:pointer;
+      background:linear-gradient(180deg,#1b2140,#121933);
+      border:1px solid #2b3352;
+      font-weight:500;
+    }
+    button.primary{
+      background:linear-gradient(180deg,#3552ff,#1a2cd1);
+      border-color:#5b72ff;
+    }
+    button.primary:hover{
+      background:linear-gradient(180deg,#4562ff,#2a3ce1);
+    }
+
+    .kernel-grid{
+      display:grid;
+      grid-template-columns:repeat(3,54px);
+      gap:6px;
+      margin:12px 0;
+    }
+    .kernel-grid input{
+      width:54px;
+      height:54px;
+      text-align:center;
+      font-weight:600;
+      border-radius:10px;
+      font-size:14px;
+    }
+    .kernel-grid input:focus{
+      border-color:var(--accent);
+      outline:2px solid rgba(122,162,255,0.2);
+    }
+    .kernel-info{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:8px;
+      padding:8px;
+      background:#0e1426;
+      border-radius:8px;
+      display:flex;
+      gap:16px;
+    }
+
+    .canvases{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:40px;
+      margin-top:20px;
+      flex-wrap:wrap;
+    }
+    .canvas-wrap{
+      position:relative;
+      border-radius:14px;
+      overflow:hidden;
+      background:#0a0f1f;
+      border:1px solid #242a3b;
+      flex:0 0 auto;
+      box-shadow:0 4px 20px rgba(0,0,0,.2);
+    }
+    .canvas-wrap header{
+      position:absolute;
+      inset:auto auto 12px 12px;
+      background:rgba(13,18,35,.9);
+      border:1px solid #263055;
+      border-radius:8px;
+      padding:6px 12px;
+      font-size:14px;
+      font-weight:600;
+      backdrop-filter:blur(10px);
+    }
+    canvas{
+      display:block;
+      width:400px;
+      height:400px;
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+      cursor: crosshair;
+    }
+    
+    /* Custom 3x3 grid cursor */
+    .canvas-wrap:hover canvas{
+      cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect x="1" y="1" width="46" height="46" fill="none" stroke="rgba(255,77,77,0.8)" stroke-width="2"/><line x1="16" y1="1" x2="16" y2="47" stroke="rgba(255,77,77,0.5)" stroke-width="1"/><line x1="32" y1="1" x2="32" y2="47" stroke="rgba(255,77,77,0.5)" stroke-width="1"/><line x1="1" y1="16" x2="47" y2="16" stroke="rgba(255,77,77,0.5)" stroke-width="1"/><line x1="1" y1="32" x2="47" y2="32" stroke="rgba(255,77,77,0.5)" stroke-width="1"/><circle cx="24" cy="24" r="2" fill="rgba(255,77,77,0.8)"/></svg>') 24 24, crosshair;
+    }
+    .hover-box{
+      position:absolute;
+      pointer-events:none;
+      display:none;
+      z-index:5;
+      background:rgba(255,77,77,0.08);
+      border:1px solid rgba(255,77,77,0.4);
+      box-shadow:
+        0 0 10px rgba(255,77,77,0.2),
+        inset 0 0 10px rgba(255,77,77,0.1);
+    }
+
+    .inspect{display:grid;grid-template-columns: 1fr;gap:12px}
+    .inspect pre{
+      margin:0;
+      background:#0e1426;
+      border:1px solid #263055;
+      border-radius:10px;
+      padding:12px;
+      overflow:auto;
+      max-height:200px;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:12px;
+      color:#cfe1ff;
+      line-height:1.4;
+    }
+    
+    .grid-comparison{
+      display:flex;
+      align-items:center;
+      gap:16px;
+      justify-content:center;
+      padding:12px 0;
+    }
+    .grid-comparison > div{
+      text-align:center;
+    }
+    .grid-comparison label{
+      display:block;
+      margin-bottom:8px;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:0.5px;
+    }
+    .operator{
+      font-size:24px;
+      color:var(--accent);
+      font-weight:bold;
+      margin:16px 0 0 0;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      background:#0e1528;
+      padding:8px 12px;
+      border:1px solid #263055;
+      border-radius:999px;
+      font-size:12px;
+      color:#c6d2f1;
+      font-weight:500;
+    }
+    .badge.success{
+      background:#1a3d1a;
+      border-color:#2d5a2d;
+      color:#90ee90;
+    }
+    .stack{display:flex;gap:10px;flex-wrap:wrap}
+    .footer{
+      margin:40px 0 40px;
+      color:var(--muted);
+      font-size:13px;
+      text-align:center;
+      max-width:600px;
+      margin-left:auto;
+      margin-right:auto;
+    }
+    .range{display:flex;align-items:center;gap:10px}
+    .range input[type="range"]{flex:1;cursor:pointer}
+    .range span{
+      min-width:70px;
+      text-align:right;
+      font-weight:500;
+    }
+
+    .radio-row{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:8px;
+    }
+    .radio-row label{
+      display:flex;
+      gap:6px;
+      align-items:center;
+      padding:8px 12px;
+      border:1px solid #2a3046;
+      border-radius:999px;
+      background:#0f1424;
+      cursor:pointer;
+      transition:all 0.2s;
+      font-size:12px;
+    }
+    .radio-row label:hover{
+      border-color:#3b4672;
+      background:#141829;
+    }
+    .radio-row input{accent-color:#6f92ff}
+    .radio-row input:checked + span{color:var(--accent)}
+
+    .mini-grid{
+      display:grid;
+      grid-template-columns:repeat(3,32px);
+      grid-auto-rows:32px;
+      gap:4px;
+      margin:12px 0;
+    }
+    .mini-grid div{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid #2a334a;
+      background:#0c1225;
+      border-radius:6px;
+      font-size:12px;
+      color:#c5d3ff;
+      font-weight:600;
+      transition:all 0.2s;
+    }
+    .mini-grid div.active{
+      background:#1a2545;
+      border-color:var(--accent);
+    }
+    .mini-grid.kernel-display div{
+      background:#1a1f35;
+      border-color:#3a4362;
+      color:#7aa2ff;
+    }
+    .row + .row{margin-top:16px}
+
+    .sr-only{
+      position:absolute;
+      left:-10000px;
+      top:auto;
+      width:1px;
+      height:1px;
+      overflow:hidden;
+    }
+
+    .loading{
+      display:inline-block;
+      width:16px;
+      height:16px;
+      border:2px solid var(--muted);
+      border-radius:50%;
+      border-top-color:var(--accent);
+      animation:spin 1s ease-in-out infinite;
+      margin-left:8px;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .preset-group{
+      margin-top:12px;
+      padding-top:12px;
+      border-top:1px solid #2a3046;
+    }
+    .preset-group h3{
+      font-size:13px;
+      margin:0 0 8px 0;
+      color:#8b93a7;
+      font-weight:500;
+    }
+    
+    .tips{
+      background:#1a2545;
+      border:1px solid #2b3552;
+      border-radius:12px;
+      padding:16px;
+      margin-top:16px;
+    }
+    .tips h3{
+      font-size:14px;
+      margin:0 0 8px 0;
+      color:var(--accent);
+    }
+    .tips ul{
+      margin:0;
+      padding-left:20px;
+      font-size:13px;
+      line-height:1.6;
+    }
+    
+    .pixel-info{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎨 Hahn's Math of Data Science - Convolution Explorer</h1>
+    <div class="stack">
+      <span class="badge">🖼️ Drag an image onto the page</span>
+      <span class="badge">🔍 Hover to inspect convolution</span>
+      <span class="badge success">✨ Real-time processing</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="row">
+      <div class="panel">
+        <h2>Step 1 — Pick or load an image</h2>
+        <p class="sub">Use sample images or upload your own. Images are processed locally in your browser.</p>
+        <div class="controls">
+          <div>
+            <label for="imgPick">Sample Images</label>
+            <select id="imgPick">
+              <option value="dogs">Dog Breeds (color)</option>
+              <option value="portrait">Portrait (grayscale)</option>
+              <option value="grid">Checker grid</option>
+              <option value="gradient">Gradient test</option>
+            </select>
+          </div>
+          <div>
+            <label for="file">Upload image</label>
+            <input id="file" type="file" accept="image/*" />
+          </div>
+          <div>
+            <label>Grayscale Conversion</label>
+            <div class="radio-row" aria-label="grayscale mode">
+              <label><input type="radio" name="gray" value="lum" checked /><span>Luminance</span></label>
+              <label><input type="radio" name="gray" value="avg" /><span>Average</span></label>
+              <label><input type="radio" name="gray" value="none" /><span>Keep Color</span></label>
+            </div>
+          </div>
+          <div class="tips">
+            <h3>💡 Quick Tips</h3>
+            <ul>
+              <li>Try different kernels to see edge detection, blurring, and sharpening</li>
+              <li>Hover over pixels to understand the math</li>
+              <li>Adjust the mix slider to blend effects</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Step 2 — Choose a kernel</h2>
+        <p class="sub">Select a preset or create custom values. The kernel is applied to each pixel's neighborhood.</p>
+        <div class="controls">
+          <div>
+            <label for="preset">Kernel Presets</label>
+            <select id="preset">
+              <optgroup label="Basic">
+                <option value="identity">Identity (no change)</option>
+              </optgroup>
+              <optgroup label="Blur Filters">
+                <option value="boxblur">Box Blur</option>
+                <option value="gauss">Gaussian Blur</option>
+                <option value="motionblur">Motion Blur</option>
+              </optgroup>
+              <optgroup label="Edge Detection">
+                <option value="edge">Edge Detection</option>
+                <option value="laplace">Laplacian</option>
+                <option value="sobelx">Sobel X (vertical edges)</option>
+                <option value="sobely">Sobel Y (horizontal edges)</option>
+              </optgroup>
+              <optgroup label="Enhancement">
+                <option value="sharpen">Sharpen</option>
+                <option value="unsharp">Unsharp Mask</option>
+                <option value="emboss">Emboss</option>
+              </optgroup>
+              <option value="custom">— Custom —</option>
+            </select>
+          </div>
+          <div>
+            <label>Kernel Matrix (3×3)</label>
+            <div class="kernel-grid" id="kernelGrid" aria-label="kernel editor"></div>
+            <div class="kernel-info">
+              <span>Sum: <strong id="kernelSum">1</strong></span>
+              <span>Norm: <strong id="kernelNorm">×1.00</strong></span>
+            </div>
+          </div>
+          <div>
+            <label>Processing Options</label>
+            <div class="radio-row">
+              <label><input type="checkbox" id="normalize" checked /><span>Normalize</span></label>
+              <label><input type="checkbox" id="clamp" checked /><span>Clamp [0-255]</span></label>
+            </div>
+          </div>
+          <div>
+            <label>Edge Handling</label>
+            <div class="radio-row">
+              <label><input type="radio" name="edge" value="zero" checked /><span>Zero pad</span></label>
+              <label><input type="radio" name="edge" value="extend" /><span>Extend</span></label>
+              <label><input type="radio" name="edge" value="wrap" /><span>Wrap</span></label>
+              <label><input type="radio" name="edge" value="mirror" /><span>Mirror</span></label>
+            </div>
+          </div>
+          <div class="range">
+            <label for="mix">Effect Strength</label>
+            <input id="mix" type="range" min="0" max="1" step="0.01" value="1" />
+            <span id="mixLabel">100%</span>
+          </div>
+          <button class="primary" id="randomKernel">🎲 Random Kernel</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="row">
+      <div class="panel" style="grid-column: 1 / -1;">
+        <h2>Step 3 — See the convolution <span id="loadingIndicator" class="loading" style="display:none"></span></h2>
+        <p class="sub">Hover over any pixel to inspect the 3×3 neighborhood and see the convolution calculation in real-time.</p>
+        <div class="canvases">
+          <div class="canvas-wrap">
+            <header>Input</header>
+            <canvas id="inCanvas" width="256" height="256" aria-label="input image"></canvas>
+            <div class="hover-box" id="hoverIn"></div>
+          </div>
+          <div class="canvas-wrap">
+            <header>Output</header>
+            <canvas id="outCanvas" width="256" height="256" aria-label="output image"></canvas>
+            <div class="hover-box" id="hoverOut"></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Computation Details</h2>
+        <div class="inspect">
+          <div class="grid-comparison">
+            <div>
+              <label>Kernel Matrix</label>
+              <div class="mini-grid" id="miniKernel"></div>
+            </div>
+            <div class="operator">×</div>
+            <div>
+              <label>Pixel Neighborhood</label>
+              <div class="mini-grid" id="miniNeighborhood"></div>
+            </div>
+          </div>
+          <div class="pixel-info" id="pixelInfo">Position: (--, --)</div>
+          <div>
+            <label>Convolution Math</label>
+            <pre id="mathBox">Hover over the image to see the convolution calculation:
+Σ(kernel[i,j] × pixel[x+i, y+j]) → output pixel</pre>
+          </div>
+          <div class="stack">
+            <span class="badge">Kernel sum: <span id="sumBadge">1</span></span>
+            <span class="badge">Output range: <span id="rangeBadge">0…255</span></span>
+            <span class="badge">Processing: <span id="modeBadge">Grayscale</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p class="footer">
+      <strong>Explore convolution interactively!</strong> Try edge detection filters (Sobel, Laplacian) on the dog image to see how kernels detect features. 
+      Turn off normalization with edge detectors to understand raw convolution values. All processing runs client-side in your browser using Canvas API.
+    </p>
+  </main>
+
+  <script>
+  // ---------- Utilities ----------
+  const $$ = sel => document.querySelector(sel);
+  const $$$ = sel => Array.from(document.querySelectorAll(sel));
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  // Default dog breeds image URL
+  const DEFAULT_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/1/18/Dog_Breeds.jpg";
+
+  // Sample images
+  const samplePortrait = new Image();
+  samplePortrait.crossOrigin = "anonymous";
+  samplePortrait.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Human_faces.jpg/1200px-Human_faces.jpg";
+
+  const dogBreedsImage = new Image();
+  dogBreedsImage.crossOrigin = "anonymous";
+
+  // Gradient generator
+  function drawGradient(ctx, size=256){
+    const grad = ctx.createLinearGradient(0,0,size,size);
+    grad.addColorStop(0,'#000');
+    grad.addColorStop(1,'#fff');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,size,size);
+  }
+
+  // Checker grid generator
+  function drawChecker(ctx, size=256, cells=16){
+    const s = size / cells;
+    for(let y=0;y<cells;y++){
+      for(let x=0;x<cells;x++){
+        const v = ((x+y)&1)?220:30;
+        ctx.fillStyle = `rgb(${v},${v},${v})`;
+        ctx.fillRect(x*s,y*s,s,s);
+      }
+    }
+  }
+
+  // ---------- Canvas & state ----------
+  const inC = $$("#inCanvas"), outC = $$("#outCanvas");
+  const inX = inC.getContext("2d"), outX = outC.getContext("2d");
+  const hoverIn = $$("#hoverIn"), hoverOut = $$("#hoverOut");
+  const mathBox = $$("#mathBox");
+  const mini = $$("#miniNeighborhood");
+  const miniKernel = $$("#miniKernel");
+  const sumBadge = $$("#sumBadge"), rangeBadge = $$("#rangeBadge"), modeBadge = $$("#modeBadge");
+  const pixelInfo = $$("#pixelInfo");
+  const loadingIndicator = $$("#loadingIndicator");
+
+  let grayMode = 'lum';
+  let isProcessing = false;
+
+  // ---------- Kernel handling ----------
+  const kernelGrid = $$("#kernelGrid");
+  const kernelSum = $$("#kernelSum");
+  const kernelNorm = $$("#kernelNorm");
+  const normalizeEl = $$("#normalize");
+  const clampEl = $$("#clamp");
+  const mixEl = $$("#mix"), mixLabel = $$("#mixLabel");
+
+  const PRESETS = {
+    identity:[0,0,0,0,1,0,0,0,0],
+    boxblur:[1,1,1,1,1,1,1,1,1],
+    gauss:[1,2,1,2,4,2,1,2,1],
+    motionblur:[0,0,0,1,1,1,0,0,0],
+    sharpen:[0,-1,0,-1,5,-1,0,-1,0],
+    unsharp:[-1,-2,-1,-2,13,-2,-1,-2,-1],
+    edge:[-1,-1,-1,-1,8,-1,-1,-1,-1],
+    laplace:[0,1,0,1,-4,1,0,1,0],
+    sobelx:[-1,0,1,-2,0,2,-1,0,1],
+    sobely:[-1,-2,-1,0,0,0,1,2,1],
+    emboss:[-2,-1,0,-1,1,1,0,1,2],
+  }
+
+  const inputs = [];
+  for(let i=0;i<9;i++){
+    const el = document.createElement('input');
+    el.type='number'; el.step='0.1'; el.value='0'; el.min='-20'; el.max='20';
+    el.addEventListener('input',()=>{
+      currentKernel[i]=parseFloat(el.value||0); 
+      refreshKernelInfo(); 
+      convolveAndDraw()
+    });
+    kernelGrid.appendChild(el); 
+    inputs.push(el);
+  }
+  let currentKernel = PRESETS.identity.slice();
+
+  function setPreset(name){
+    const k = (name==='custom'?currentKernel:PRESETS[name]||PRESETS.identity).slice();
+    if(name!=='custom') currentKernel = k;
+    inputs.forEach((el,i)=>{ el.value = k[i]; });
+    refreshKernelInfo();
+    convolveAndDraw();
+  }
+
+  function refreshKernelInfo(){
+    const s = currentKernel.reduce((a,b)=>a+b,0);
+    sumBadge.textContent = s.toFixed(2);
+    kernelSum.textContent = s.toFixed(2);
+    const normOn = normalizeEl.checked && s>0;
+    const normVal = normOn ? (1/s) : 1;
+    kernelNorm.textContent = `×${normVal.toFixed(2)}`;
+    updateKernelDisplay();
+  }
+
+  function updateKernelDisplay(){
+    miniKernel.innerHTML = '';
+    miniKernel.classList.add('kernel-display');
+    for(let i=0; i<9; i++){
+      const cell = document.createElement('div');
+      cell.textContent = currentKernel[i].toFixed(1);
+      miniKernel.appendChild(cell);
+    }
+  }
+
+  // Random kernel generator
+  $$("#randomKernel").addEventListener('click', ()=>{
+    const k = [];
+    for(let i=0;i<9;i++){
+      k.push(Math.round((Math.random()-0.5)*10));
+    }
+    currentKernel = k;
+    inputs.forEach((el,i)=>{ el.value = k[i]; });
+    $$("#preset").value = 'custom';
+    refreshKernelInfo();
+    convolveAndDraw();
+  });
+
+  // ---------- Image loading / processing ----------
+  function toGrayscale(img){
+    const tmp = document.createElement('canvas');
+    const s = 256;
+    tmp.width = tmp.height = s;
+    const tx = tmp.getContext('2d');
+    
+    // Cover behavior - fill square maintaining aspect
+    const scale = Math.max(s/img.width, s/img.height);
+    const w = img.width * scale, h = img.height * scale;
+    const dx = (s - w)/2, dy = (s - h)/2;
+    tx.drawImage(img,dx,dy,w,h);
+
+    const d = tx.getImageData(0,0,s,s);
+    const g = new Uint8ClampedArray(s*s);
+    for(let i=0;i<g.length;i++){
+      const r=d.data[i*4], gg=d.data[i*4+1], b=d.data[i*4+2];
+      if(grayMode==='lum') g[i]=Math.round(0.2126*r + 0.7152*gg + 0.0722*b);
+      else if(grayMode==='avg') g[i]=Math.round((r+gg+b)/3);
+      else g[i] = r; // For color mode, just use red channel for now
+    }
+    return {data:g, w:s, h:s, original:d};
+  }
+
+  let imageData = null; // {data:Uint8Array for grayscale, w, h, original:ImageData}
+
+  function drawInput(){
+    if(!imageData) return;
+    
+    if(grayMode === 'none' && imageData.original){
+      // Draw original color image
+      inX.putImageData(imageData.original,0,0);
+      modeBadge.textContent = 'Color';
+    } else {
+      // Draw grayscale
+      const img = inX.createImageData(imageData.w, imageData.h);
+      for(let i=0;i<imageData.data.length;i++){
+        const v=imageData.data[i];
+        img.data[i*4]=img.data[i*4+1]=img.data[i*4+2]=v; 
+        img.data[i*4+3]=255;
+      }
+      inX.putImageData(img,0,0);
+      modeBadge.textContent = 'Grayscale';
+    }
+  }
+
+  function edgeRead(arr,w,h,x,y,mode){
+    if(mode==='extend'){ 
+      x=clamp(x,0,w-1); 
+      y=clamp(y,0,h-1); 
+    }
+    else if(mode==='wrap'){ 
+      x=(x+w)%w; 
+      y=(y+h)%h; 
+    }
+    else if(mode==='mirror'){
+      if(x<0) x=-x-1;
+      if(x>=w) x=2*w-x-1;
+      if(y<0) y=-y-1;
+      if(y>=h) y=2*h-y-1;
+    }
+    else { // zero pad
+      if(x<0||y<0||x>=w||y>=h) return 0;
+    }
+    return arr[y*w+x];
+  }
+
+  function convolve(src, kernel, {normalize=true, clamp01=true, edge='zero', useColor=false}){
+    const w=src.w, h=src.h;
+    const sumK = kernel.reduce((a,b)=>a+b,0);
+    const norm = (normalize && sumK>0) ? (1/sumK) : 1;
+
+    if(useColor && src.original){
+      // Color convolution
+      const out = new Uint8ClampedArray(w*h*4);
+      const orig = src.original.data;
+      
+      let minR=Infinity, maxR=-Infinity;
+      let minG=Infinity, maxG=-Infinity;
+      let minB=Infinity, maxB=-Infinity;
+      
+      for(let y=0;y<h;y++){
+        for(let x=0;x<w;x++){
+          let accR=0, accG=0, accB=0;
+          
+          for(let ky=-1;ky<=1;ky++){
+            for(let kx=-1;kx<=1;kx++){
+              const kval = kernel[(ky+1)*3 + (kx+1)];
+              let px=x+kx, py=y+ky;
+              
+              // Apply edge handling
+              if(edge==='extend'){ 
+                px=clamp(px,0,w-1); 
+                py=clamp(py,0,h-1); 
+              }
+              else if(edge==='wrap'){ 
+                px=(px+w)%w; 
+                py=(py+h)%h; 
+              }
+              else if(edge==='mirror'){
+                if(px<0) px=-px-1;
+                if(px>=w) px=2*w-px-1;
+                if(py<0) py=-py-1;
+                if(py>=h) py=2*h-py-1;
+              }
+              else if(px<0||py<0||px>=w||py>=h) {
+                continue; // zero pad
+              }
+              
+              const idx = (py*w+px)*4;
+              accR += kval * orig[idx];
+              accG += kval * orig[idx+1];
+              accB += kval * orig[idx+2];
+            }
+          }
+          
+          accR *= norm;
+          accG *= norm;
+          accB *= norm;
+          
+          minR = Math.min(minR, accR); maxR = Math.max(maxR, accR);
+          minG = Math.min(minG, accG); maxG = Math.max(maxG, accG);
+          minB = Math.min(minB, accB); maxB = Math.max(maxB, accB);
+          
+          const idx = (y*w+x)*4;
+          if(clamp01) {
+            out[idx] = clamp(Math.round(accR),0,255);
+            out[idx+1] = clamp(Math.round(accG),0,255);
+            out[idx+2] = clamp(Math.round(accB),0,255);
+          } else {
+            out[idx] = Math.round(accR);
+            out[idx+1] = Math.round(accG);
+            out[idx+2] = Math.round(accB);
+          }
+          out[idx+3] = 255;
+        }
+      }
+      
+      return {data:out,w,h,range:[Math.min(minR,minG,minB), Math.max(maxR,maxG,maxB)], isColor:true};
+    } else {
+      // Grayscale convolution
+      const wsrc = src.data;
+      const out = new Uint8ClampedArray(w*h);
+      
+      let min=Infinity, max=-Infinity;
+      for(let y=0;y<h;y++){
+        for(let x=0;x<w;x++){
+          let acc=0;
+          for(let ky=-1;ky<=1;ky++){
+            for(let kx=-1;kx<=1;kx++){
+              const kval = kernel[(ky+1)*3 + (kx+1)];
+              const pix = edgeRead(wsrc,w,h,x+kx,y+ky,edge);
+              acc += kval * pix;
+            }
+          }
+          acc *= norm;
+          min = Math.min(min, acc); 
+          max = Math.max(max, acc);
+          if(clamp01) acc = clamp(acc,0,255);
+          out[y*w+x] = Math.round(acc);
+        }
+      }
+      return {data:out,w,h,range:[min,max], isColor:false};
+    }
+  }
+
+  function mixImages(a,b,t){
+    if(b.isColor && a.original){
+      // Mix color images
+      const out = new Uint8ClampedArray(a.w*a.h*4);
+      const orig = a.original.data;
+      for(let i=0;i<out.length;i+=4){
+        out[i] = Math.round((1-t)*orig[i] + t*b.data[i]);
+        out[i+1] = Math.round((1-t)*orig[i+1] + t*b.data[i+1]);
+        out[i+2] = Math.round((1-t)*orig[i+2] + t*b.data[i+2]);
+        out[i+3] = 255;
+      }
+      return {data:out,w:a.w,h:a.h,isColor:true};
+    } else {
+      // Mix grayscale
+      const out = new Uint8ClampedArray(a.data.length);
+      for(let i=0;i<out.length;i++) 
+        out[i]=Math.round((1-t)*a.data[i] + t*b.data[i]);
+      return {data:out,w:a.w,h:a.h,isColor:false};
+    }
+  }
+
+  function drawToCanvas(g, ctx){
+    if(g.isColor){
+      // Draw color data
+      const img = ctx.createImageData(g.w,g.h);
+      img.data.set(g.data);
+      ctx.putImageData(img,0,0);
+    } else {
+      // Draw grayscale data
+      const img = ctx.createImageData(g.w,g.h);
+      for(let i=0;i<g.data.length;i++){
+        const v=g.data[i]; 
+        img.data[i*4]=img.data[i*4+1]=img.data[i*4+2]=v; 
+        img.data[i*4+3]=255;
+      }
+      ctx.putImageData(img,0,0);
+    }
+  }
+
+  function convolveAndDraw(){
+    if(!imageData || isProcessing) return;
+    
+    isProcessing = true;
+    loadingIndicator.style.display = 'inline-block';
+    
+    // Use requestAnimationFrame for smooth UI
+    requestAnimationFrame(()=>{
+      const edge = document.querySelector('input[name="edge"]:checked').value;
+      const useColor = grayMode === 'none';
+      
+      const res = convolve(imageData, currentKernel, {
+        normalize: normalizeEl.checked, 
+        clamp01: clampEl.checked, 
+        edge,
+        useColor
+      });
+      
+      rangeBadge.textContent = `${res.range[0].toFixed(1)}…${res.range[1].toFixed(1)}`;
+      
+      const t = parseFloat(mixEl.value);
+      const blended = t < 1 ? mixImages(imageData, res, t) : res;
+      
+      drawInput();
+      drawToCanvas(blended, outX);
+      
+      isProcessing = false;
+      loadingIndicator.style.display = 'none';
+    });
+  }
+
+  // ---------- Hover inspector ----------
+  function setupHover(canvas, hoverBox){
+    let currentHover = null;
+    
+    canvas.addEventListener('mousemove', (e)=>{
+      if(!imageData) return;
+      
+      const rect = canvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+      const ix = Math.floor(sx / rect.width * imageData.w);
+      const iy = Math.floor(sy / rect.height * imageData.h);
+      
+      if(currentHover && currentHover.x === ix && currentHover.y === iy) return;
+      currentHover = {x:ix, y:iy};
+
+      // Size per pixel
+      const cellW = rect.width/imageData.w, cellH = rect.height/imageData.h;
+
+      // Position 3x3 box
+      hoverBox.style.display='block';
+      hoverBox.style.left = `${(ix-1)*cellW}px`;
+      hoverBox.style.top = `${(iy-1)*cellH}px`;
+      hoverBox.style.width = `${cellW*3}px`;
+      hoverBox.style.height = `${cellH*3}px`;
+
+      // Update pixel info
+      pixelInfo.textContent = `Position: (${ix}, ${iy})`;
+
+      // Fill mini grid + math
+      mini.innerHTML='';
+      const edge = document.querySelector('input[name="edge"]:checked').value;
+      let lines=[]; 
+      let acc=0; 
+      const s=currentKernel; 
+      const sumK = s.reduce((a,b)=>a+b,0);
+      const norm = (normalizeEl.checked && sumK>0) ? (1/sumK) : 1;
+      
+      // Update kernel display to show correspondence
+      miniKernel.innerHTML = '';
+      miniKernel.classList.add('kernel-display');
+      
+      for(let ky=-1;ky<=1;ky++){
+        for(let kx=-1;kx<=1;kx++){
+          const idx = (ky+1)*3 + (kx+1);
+          const kval = s[idx];
+          const pix = edgeRead(imageData.data,imageData.w,imageData.h,ix+kx,iy+ky,edge);
+          const term = kval*pix*norm;
+          acc += term;
+          
+          // Kernel cell
+          const kCell = document.createElement('div');
+          kCell.textContent = kval.toFixed(1);
+          if(ky===0 && kx===0) kCell.classList.add('active');
+          miniKernel.appendChild(kCell);
+          
+          // Neighborhood cell
+          const cell=document.createElement('div'); 
+          cell.textContent=pix;
+          if(ky===0 && kx===0) cell.classList.add('active');
+          mini.appendChild(cell);
+          
+          const normStr = norm!==1?` × ${norm.toFixed(2)}`:'';
+          lines.push(`${kval.toString().padStart(4)} × ${pix.toString().padStart(3)}${normStr} = ${term.toFixed(1)}`);
+        }
+      }
+      
+      if(clampEl.checked) acc = clamp(acc,0,255);
+      mathBox.textContent = `${lines.join('\n')}  \n━━━━━━━━━━━━━━━━━━━━━━\nSum = ${acc.toFixed(1)} → ${Math.round(acc)}`;
+    });
+    
+    canvas.addEventListener('mouseleave',()=>{ 
+      hoverBox.style.display='none'; 
+      currentHover = null;
+      mathBox.textContent = 'Hover over the image to see the convolution calculation:\nΣ(kernel[i,j] × pixel[x+i, y+j]) → output pixel';
+      pixelInfo.textContent = 'Position: (--, --)';
+      mini.innerHTML=''; 
+      updateKernelDisplay(); // Reset kernel display to static view
+    });
+  }
+
+  setupHover(inC, hoverIn); 
+  setupHover(outC, hoverOut);
+
+  // ---------- Event wiring ----------
+  $$("#preset").addEventListener('change', (e)=>{
+    const v=e.target.value; 
+    setPreset(v);
+  });
+  
+  $$("#imgPick").addEventListener('change', (e)=>{
+    const v=e.target.value; 
+    if(v==='grid'){ 
+      const t=document.createElement('canvas'); 
+      t.width=t.height=256; 
+      drawChecker(t.getContext('2d'),256,16); 
+      const img=new Image(); 
+      img.src=t.toDataURL(); 
+      img.onload=()=>{ 
+        imageData=toGrayscale(img); 
+        drawInput(); 
+        convolveAndDraw(); 
+      }; 
+    }
+    else if(v==='gradient'){
+      const t=document.createElement('canvas'); 
+      t.width=t.height=256; 
+      drawGradient(t.getContext('2d'),256); 
+      const img=new Image(); 
+      img.src=t.toDataURL(); 
+      img.onload=()=>{ 
+        imageData=toGrayscale(img); 
+        drawInput(); 
+        convolveAndDraw(); 
+      };
+    }
+    else if(v==='portrait'){
+      if(samplePortrait.complete){ 
+        imageData=toGrayscale(samplePortrait); 
+        drawInput(); 
+        convolveAndDraw(); 
+      } else {
+        samplePortrait.onload=()=>{ 
+          imageData=toGrayscale(samplePortrait); 
+          drawInput(); 
+          convolveAndDraw(); 
+        };
+      }
+    }
+    else if(v==='dogs'){
+      loadDogImage();
+    }
+  });
+  
+  $$$('input[name="gray"]').forEach(r=> r.addEventListener('change', e=>{ 
+    grayMode=e.target.value; 
+    modeBadge.textContent = grayMode==='none' ? 'Color' : 'Grayscale';
+    if(currentImage){ 
+      imageData=toGrayscale(currentImage); 
+    } else if(dogBreedsImage.complete){ 
+      imageData=toGrayscale(dogBreedsImage); 
+    }
+    drawInput(); 
+    convolveAndDraw(); 
+  }));
+  
+  normalizeEl.addEventListener('change', ()=>{ 
+    refreshKernelInfo(); 
+    convolveAndDraw(); 
+  });
+  
+  clampEl.addEventListener('change', ()=> convolveAndDraw());
+  
+  mixEl.addEventListener('input', ()=>{ 
+    const val = Math.round(parseFloat(mixEl.value)*100);
+    mixLabel.textContent = `${val}%`; 
+    convolveAndDraw(); 
+  });
+  
+  $$$('input[name="edge"]').forEach(r=> r.addEventListener('change', ()=> convolveAndDraw()));
+
+  const fileEl = $$("#file");
+  let currentImage = null;
+  
+  fileEl.addEventListener('change',()=>{
+    const f=fileEl.files[0]; 
+    if(!f) return; 
+    const img=new Image(); 
+    img.onload=()=>{ 
+      currentImage=img; 
+      imageData=toGrayscale(img); 
+      drawInput(); 
+      convolveAndDraw(); 
+    }; 
+    img.src=URL.createObjectURL(f);
+  });
+
+  // Drag & drop
+  document.addEventListener('dragover', e=>{ 
+    e.preventDefault(); 
+    document.body.style.background = 'rgba(122,162,255,0.1)';
+  });
+  
+  document.addEventListener('dragleave', e=>{ 
+    document.body.style.background = '';
+  });
+  
+  document.addEventListener('drop', e=>{
+    e.preventDefault(); 
+    document.body.style.background = '';
+    const f = e.dataTransfer.files && e.dataTransfer.files[0]; 
+    if(!f) return; 
+    const img=new Image(); 
+    img.onload=()=>{ 
+      currentImage=img; 
+      imageData=toGrayscale(img); 
+      drawInput(); 
+      convolveAndDraw(); 
+    }; 
+    img.src=URL.createObjectURL(f);
+  });
+
+  // Load dog image
+  function loadDogImage(){
+    dogBreedsImage.onload = function(){
+      currentImage = dogBreedsImage;
+      imageData = toGrayscale(dogBreedsImage);
+      drawInput();
+      convolveAndDraw();
+    };
+    dogBreedsImage.onerror = function(){
+      console.error("Failed to load dog breeds image, falling back to portrait");
+      if(samplePortrait.complete){ 
+        imageData=toGrayscale(samplePortrait); 
+        drawInput(); 
+        convolveAndDraw(); 
+      }
+    };
+    dogBreedsImage.src = DEFAULT_IMAGE_URL;
+  }
+
+  // Initialize UI
+  function init(){
+    // Fill kernel inputs with identity
+    setPreset('identity');
+    updateKernelDisplay();
+    // Load dog breeds image as default
+    loadDogImage();
+  }
+
+  init();
+  </script>
+</body>
+</html>
