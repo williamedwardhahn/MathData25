@@ -25,11 +25,3 @@
 [Demos 1](https://docs.google.com/document/d/1xf0PaTv_Pc2hxcHCOmVNEVzL_oX9RWF4T6JbAlzSiU8/edit?usp=sharing)
 
 
-
----
-
-## 4. Summary of Tasks
-- **ChatGPT:** Ask a question about Data Science, then ask for a Python script.
-- **Colab:** Create and run a scatter plot.
-- **GitHub:** Create a repo, add an HTML file, and publish it via GitHub Pages.
-
