@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bit Depth Lab — visualize quantization & dithering</title>
+  <style>
+    :root{
+      --bg:#0b0d12; --panel:#121621; --muted:#8b93a7; --text:#e9edf5;
+      --accent:#7aa2ff; --accent-2:#ff4d4d; --danger:#ff6b81; --success:#4caf50;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:linear-gradient(180deg,#0b0d12,#0e1320); color:var(--text);
+      font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      display:flex; flex-direction:column; align-items:center; min-height:100vh;
+    }
+    a{color:var(--accent)}
+    header{
+      display:flex; gap:24px; align-items:center; justify-content:space-between;
+      padding:20px 24px; border-bottom:1px solid #1d2333; background:rgba(10,14,25,.8);
+      backdrop-filter:saturate(140%) blur(10px); position:sticky; top:0; z-index:10;
+      width:100%; max-width:1400px; margin:0 auto;
+    }
+    h1{font-size:24px;margin:0;font-weight:700;letter-spacing:.3px}
+    .container{max-width:1400px;margin:20px auto;padding:0 20px;width:100%}
+    .row{display:grid;grid-template-columns:380px 1fr;gap:24px;align-items:start}
+    @media (max-width: 1200px){.row{grid-template-columns:340px 1fr;gap:20px}}
+    @media (max-width: 900px){.row{grid-template-columns:1fr;gap:20px}}
+    .panel{background:var(--panel);border:1px solid #242a3b;border-radius:16px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,.15),0 1px 3px rgba(0,0,0,.2);transition:transform .2s,box-shadow .2s}
+    .panel:hover{transform:translateY(-1px);box-shadow:0 8px 30px rgba(0,0,0,.2),0 2px 4px rgba(0,0,0,.15)}
+    .panel h2{font-size:16px;margin:0 0 10px;color:#bfc7dc}
+    .panel .sub{font-size:12px;color:var(--muted);margin:4px 0 12px}
+    .controls{display:grid;gap:10px}
+    label{font-size:12px;color:#b7bfd6;font-weight:500}
+    select,input[type="number"],input[type="file"],input[type="range"],button{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2a3046;background:#0f1424;color:var(--text);transition:border-color .2s}
+    select:hover,input:hover,button:hover{border-color:#3b4672}
+    button{cursor:pointer;background:linear-gradient(180deg,#1b2140,#121933);border:1px solid #2b3352;font-weight:500;position:relative;overflow:hidden}
+    button::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(255,255,255,.1));opacity:0;transition:opacity .3s}
+    button:hover::before{opacity:1}
+    button.primary{background:linear-gradient(180deg,#3552ff,#1a2cd1);border-color:#5b72ff;color:white}
+    button.primary:hover{background:linear-gradient(180deg,#4562ff,#2a3ce1);border-color:#6b82ff}
+    button:active{transform:scale(0.98)}
+    .radio-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .radio-row label{display:flex;gap:6px;align-items:center;padding:8px 14px;border:1px solid #2a3046;border-radius:999px;background:#0f1424;cursor:pointer;transition:all .2s;font-size:12px;position:relative;overflow:hidden}
+    .radio-row label::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(122,162,255,.1));opacity:0;transition:opacity .2s}
+    .radio-row label:hover{border-color:#3b4672;background:#141829}
+    .radio-row label:hover::before{opacity:1}
+    .radio-row input{accent-color:#6f92ff}
+    .radio-row input:checked + span{color:var(--accent);font-weight:600}
+    .stack{display:flex;gap:10px;flex-wrap:wrap}
+    .badge{display:inline-flex;align-items:center;gap:6px;background:#0e1528;padding:8px 12px;border:1px solid #263055;border-radius:999px;font-size:12px;color:#c6d2f1;font-weight:500}
+    .badge.success{background:#1a3d1a;border-color:#2d5a2d;color:#90ee90}
+    .footer{margin:40px auto;color:var(--muted);font-size:13px;text-align:center;max-width:700px}
+    .canvases{display:flex;justify-content:center;align-items:center;gap:30px;margin-top:24px;flex-wrap:wrap}
+    .canvas-wrap{position:relative;border-radius:16px;overflow:hidden;background:#0a0f1f;border:1px solid #242a3b;flex:0 0 auto;box-shadow:0 4px 20px rgba(0,0,0,.2),0 1px 3px rgba(0,0,0,.3)}
+    .canvas-wrap header{position:absolute;inset:auto auto 16px 16px;background:rgba(13,18,35,.95);border:1px solid #263055;border-radius:10px;padding:8px 14px;font-size:14px;font-weight:600;backdrop-filter:blur(12px);letter-spacing:.3px}
+    canvas{display:block;width:360px;height:360px;image-rendering: pixelated;image-rendering:-moz-crisp-edges;image-rendering:crisp-edges}
+    @media (max-width: 900px){canvas{width:300px;height:300px}}
+    @media (max-width: 600px){canvas{width:240px;height:240px}}
+    .hover-dot{position:absolute;pointer-events:none;width:12px;height:12px;border-radius:50%;border:2px solid var(--accent-2);background:rgba(255,77,77,.3);transform:translate(-50%,-50%);display:none;box-shadow:0 0 8px rgba(255,77,77,.6),0 0 2px rgba(0,0,0,.4)}
+    .inspect{display:grid;grid-template-columns:1fr;gap:12px}
+    .inspect pre{margin:0;background:#0e1426;border:1px solid #263055;border-radius:10px;padding:12px;overflow:auto;max-height:240px;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-size:12px;color:#cfe1ff;line-height:1.4}
+    .histogram-container{margin-top:12px}
+    .mini-grid{display:grid;gap:3px;grid-auto-flow:column;grid-template-rows:repeat(auto-fill, minmax(0, 1fr))}
+    .mini-grid.cols-2{grid-template-columns:repeat(2,1fr)}
+    .mini-grid.cols-4{grid-template-columns:repeat(4,1fr)}
+    .mini-grid.cols-8{grid-template-columns:repeat(8,1fr)}
+    .mini-grid.cols-16{grid-template-columns:repeat(16,1fr)}
+    .mini-grid.cols-32{grid-template-columns:repeat(32,1fr)}
+    .mini-grid.cols-64{grid-template-columns:repeat(64,1fr)}
+    .mini-grid.cols-128{grid-template-columns:repeat(128,1fr)}
+    .mini-grid.cols-256{grid-template-columns:repeat(256,1fr)}
+    .mini-grid div{display:flex;align-items:center;justify-content:center;border:1px solid #2a334a;background:#0c1225;border-radius:4px;font-size:11px;color:#c5d3ff;font-weight:600;padding:2px;min-height:40px;position:relative;overflow:hidden;cursor:pointer;transition:all .2s}
+    .mini-grid div:hover{border-color:#4a5570;transform:translateY(-1px);z-index:10}
+    .mini-grid div .bar{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg, rgba(122,162,255,.8), rgba(122,162,255,.4));transition:height .3s ease}
+    .mini-grid div .label{position:relative;z-index:1;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+    .range{display:flex;align-items:center;gap:10px}
+    .range span{min-width:72px;text-align:right;font-weight:500}
+    .loading{display:inline-block;width:16px;height:16px;border:2px solid var(--muted);border-radius:50%;border-top-color:var(--accent);animation:spin 1s linear infinite;margin-left:8px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>🧪 Bit Depth Lab</h1>
+      <p style="margin:0;font-size:14px;color:var(--muted);font-weight:400">Visualize quantization & dithering in real-time</p>
+    </div>
+    <div class="stack">
+      <span class="badge">🖼️ Drag & drop</span>
+      <span class="badge">🔍 Hover to inspect</span>
+      <span class="badge success">✨ Real-time</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="row">
+      <div class="panel">
+        <h2>Step 1 — Pick or load an image</h2>
+        <p class="sub">Use sample images or upload your own. Processing runs locally in your browser.</p>
+        <div class="controls" id="controls">
+          <div>
+            <label for="imgPick">Sample Images</label>
+            <select id="imgPick">
+              <option value="portrait">Portrait</option>
+              <option value="gradient">Gradient ramp</option>
+              <option value="checker">Checker grid</option>
+              <option value="dogs">Dog Breeds (color)</option>
+            </select>
+          </div>
+          <div>
+            <label for="fileInput">Upload image</label>
+            <input id="fileInput" type="file" accept="image/*" />
+          </div>
+          <div>
+            <label>Channel Mode</label>
+            <div class="radio-row" aria-label="channel mode">
+              <label><input type="radio" name="mode" value="gray" checked><span>Grayscale</span></label>
+              <label><input type="radio" name="mode" value="color"><span>Color (per-channel)</span></label>
+            </div>
+          </div>
+          <div>
+            <label>Transfer (Gamma)</label>
+            <div class="radio-row" aria-label="gamma mode">
+              <label><input type="radio" name="gamma" value="srgb" checked><span>sRGB (display)</span></label>
+              <label><input type="radio" name="gamma" value="linear"><span>Linear light</span></label>
+            </div>
+          </div>
+          <div>
+            <label for="bitSlider">Bit Depth <span id="bitLabel" style="float:right;font-weight:600">8-bit</span></label>
+            <input id="bitSlider" type="range" min="1" max="8" step="1" value="8">
+          </div>
+          <div>
+            <label>Quantizer</label>
+            <div class="radio-row" aria-label="quantizer type">
+              <label><input type="radio" name="quant" value="midtread" checked><span>Mid‑tread</span></label>
+              <label><input type="radio" name="quant" value="midrise"><span>Mid‑rise</span></label>
+            </div>
+          </div>
+          <div>
+            <label>Dithering</label>
+            <div class="radio-row" aria-label="dither type">
+              <label><input type="radio" name="dither" value="none" checked><span>None</span></label>
+              <label><input type="radio" name="dither" value="bayer4"><span>Ordered 4×4</span></label>
+              <label><input type="radio" name="dither" value="bayer8"><span>Ordered 8×8</span></label>
+              <label><input type="radio" name="dither" value="fs"><span>Floyd–Steinberg</span></label>
+              <label><input type="radio" name="dither" value="jjn"><span>JJN</span></label>
+            </div>
+          </div>
+          <div class="range">
+            <label for="mix">Effect Strength</label>
+            <input id="mix" type="range" min="0" max="1" step="0.01" value="1" />
+            <span id="mixLabel">100%</span>
+          </div>
+          <div class="range">
+            <label for="zoom">Inspector Zoom</label>
+            <input id="zoom" type="range" min="1" max="16" step="1" value="8" />
+            <span id="zoomLabel">8×</span>
+          </div>
+          <button class="primary" id="randomize">🎲 Randomize preset</button>
+          <div class="tips" style="background:linear-gradient(135deg,#1a2545,#1d284a);border:1px solid #2b3552;border-radius:14px;padding:18px;margin-top:12px;box-shadow:inset 0 1px 2px rgba(0,0,0,.2)">
+            <h3 style="margin:0 0 10px;color:var(--accent);font-size:14px;display:flex;align-items:center;gap:6px">💡 Quick Tips</h3>
+            <ul style="margin:0;padding-left:20px;font-size:13px;line-height:1.7;color:#d1d8e8">
+              <li>Lower bits increase quantization error; try 2–4 bits with dithering</li>
+              <li>Switch sRGB/Linear to see how gamma affects perceived banding</li>
+              <li>Hover the image to inspect exact pixel values and calculations</li>
+              <li>Floyd-Steinberg and JJN are error diffusion algorithms</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Step 2 — Visualize & Compare <span id="loadingIndicator" class="loading" style="display:none"></span></h2>
+        <p class="sub">Side‑by‑side original and quantized outputs. Blend with Mix for A/B comparisons.</p>
+        <div class="canvases">
+          <div class="canvas-wrap">
+            <header>Input</header>
+            <canvas id="inCanvas" width="256" height="256" aria-label="input image"></canvas>
+            <div id="dotIn" class="hover-dot"></div>
+          </div>
+          <div class="canvas-wrap">
+            <header>Output</header>
+            <canvas id="outCanvas" width="256" height="256" aria-label="output image"></canvas>
+            <div id="dotOut" class="hover-dot"></div>
+          </div>
+        </div>
+        
+        <div style="margin-top:32px">
+          <h3 style="font-size:16px;margin:0 0 16px;color:#bfc7dc">Inspector</h3>
+          <div class="inspect">
+            <div class="stack" style="margin-bottom:12px">
+              <span class="badge">Range: <span id="rangeBadge">0…255</span></span>
+              <span class="badge">Mode: <span id="modeBadge">Grayscale</span></span>
+              <span class="badge">Bits: <span id="bitsBadge">8</span></span>
+              <span class="badge">Levels: <span id="levelsBadge">256</span></span>
+              <span class="badge">PSNR: <span id="psnrBadge">∞ dB</span></span>
+            </div>
+            <pre id="inspectorBox">Hover the image to see pixel math:
+1) Read pixel (sRGB)
+2) Convert to {linear or sRGB}
+3) Quantize to N levels (based on bits & quantizer)
+4) Dither adjustment (if any)
+5) Convert back to sRGB → display value
+            </pre>
+            <div class="histogram-container">
+              <label style="margin-bottom:8px;display:block">Histogram <span style="font-weight:400;color:var(--muted)">(quantized levels)</span></label>
+              <div class="mini-grid" id="histogram"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <p class="footer">
+      <strong>Play with quantization!</strong> Try 1–2 bits with and without dithering on the gradient. Toggle sRGB/Linear to understand why gamma matters. All processing runs client‑side using the Canvas API.
+    </p>
+  </main>
+
+  <script>
+  // ---------- Utilities ----------
+  const $$ = sel => document.querySelector(sel);
+  const $$$ = sel => Array.from(document.querySelectorAll(sel));
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  // sRGB <-> Linear conversions
+  function srgbToLinear(u){
+    u = u/255; // 0..1
+    return u <= 0.04045 ? (u/12.92) : Math.pow((u+0.055)/1.055, 2.4);
+  }
+  function linearToSrgb(f){
+    let u = f <= 0.0031308 ? (12.92*f) : (1.055*Math.pow(f,1/2.4) - 0.055);
+    return clamp(Math.round(u*255),0,255);
+  }
+
+  // Ordered dither thresholds (0..1)
+  const BAYER4 = [
+    [0, 8, 2,10],
+    [12,4,14,6],
+    [3,11,1,9],
+    [15,7,13,5]
+  ].map(row=>row.map(v=> (v+0.5)/16 ));
+
+  const BAYER8_BASE = [
+    [0,48,12,60,3,51,15,63],
+    [32,16,44,28,35,19,47,31],
+    [8,56,4,52,11,59,7,55],
+    [40,24,36,20,43,27,39,23],
+    [2,50,14,62,1,49,13,61],
+    [34,18,46,30,33,17,45,29],
+    [10,58,6,54,9,57,5,53],
+    [42,26,38,22,41,25,37,21]
+  ];
+  const BAYER8 = BAYER8_BASE.map(r=>r.map(v=>(v+0.5)/64));
+
+  // ---------- Canvas & State ----------
+  const inC = $$('#inCanvas'), outC = $$('#outCanvas');
+  const inX = inC.getContext('2d');
+  const outX = outC.getContext('2d');
+  const dotIn = $$('#dotIn'), dotOut = $$('#dotOut');
+
+  const loading = $$('#loadingIndicator');
+  const inspectorBox = $$('#inspectorBox');
+  const rangeBadge = $$('#rangeBadge');
+  const modeBadge = $$('#modeBadge');
+  const bitsBadge = $$('#bitsBadge');
+  const levelsBadge = $$('#levelsBadge');
+  const psnrBadge = $$('#psnrBadge');
+  const histogramEl = $$('#histogram');
+
+  const DEFAULT_PORTRAIT = 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Human_faces.jpg/1200px-Human_faces.jpg';
+  const DEFAULT_DOGS = 'https://upload.wikimedia.org/wikipedia/commons/1/18/Dog_Breeds.jpg';
+
+  let state = {
+    mode: 'gray', // 'gray' | 'color'
+    gamma: 'srgb', // 'srgb' | 'linear'
+    bits: 8,
+    quant: 'midtread', // 'midtread' | 'midrise'
+    dither: 'none', // 'none' | 'bayer4' | 'bayer8' | 'fs' | 'jjn'
+    mix: 1,
+    zoom: 8,
+  };
+
+  let inputImage = null; // Image element currently loaded
+  let srcImageData = null; // ImageData 256x256 original
+  let quantImageData = null; // ImageData 256x256 quantized
+
+  // ---------- Image sources & generators ----------
+  function drawGradient(ctx, size=256){
+    const grad = ctx.createLinearGradient(0,0,size,0);
+    grad.addColorStop(0,'#000');
+    grad.addColorStop(1,'#fff');
+    ctx.fillStyle = grad; ctx.fillRect(0,0,size,size);
+  }
+  function drawChecker(ctx, size=256, cells=16){
+    const s = size / cells;
+    for(let y=0;y<cells;y++){
+      for(let x=0;x<cells;x++){
+        const v = ((x+y)&1)?220:30;
+        ctx.fillStyle = `rgb(${v},${v},${v})`;
+        ctx.fillRect(x*s,y*s,s,s);
+      }
+    }
+  }
+  function coverDraw(img, ctx, size=256){
+    const scale = Math.max(size/img.width, size/img.height);
+    const w = img.width * scale, h = img.height * scale;
+    const dx = (size - w)/2, dy = (size - h)/2;
+    ctx.drawImage(img, dx, dy, w, h);
+  }
+
+  // ---------- Quantization core ----------
+  function quantizeImage(src, {mode, gamma, bits, quant, dither}){
+    const w = src.width, h = src.height;
+    const out = new ImageData(w,h);
+    const levels = Math.pow(2, bits); // 2^bits levels
+    const maxCode = levels - 1; // Maximum code value
+    const midrise = (quant==='midrise');
+
+    // Build per-channel buffers in linear or srgb domain 0..1
+    const toLin = v => gamma==='linear'? (v/255) : srgbToLinear(v);
+    const fromLin = f => gamma==='linear'? clamp(Math.round(f*255),0,255) : linearToSrgb(f);
+
+    // For ordered dither, precompute threshold function (0..1)
+    const tFunc = (x,y)=>{
+      if(dither==='bayer4') return BAYER4[y&3][x&3];
+      if(dither==='bayer8') return BAYER8[y&7][x&7];
+      return 0.5; // unused for none & error diffusion
+    };
+
+    // Prepare histogram of quantized codes
+    const hist = new Uint32Array(levels);
+
+    // Error diffusion requires working buffer per channel in processing domain
+    const proc = new Float32Array(w*h*4);
+
+    // Fill processing buffer (linear domain 0..1)
+    for(let i=0;i<w*h;i++){
+      const r = src.data[i*4], g=src.data[i*4+1], b=src.data[i*4+2], a=src.data[i*4+3];
+      if(mode==='gray'){
+        const y = 0.2126*r + 0.7152*g + 0.0722*b; // sRGB luma approximation
+        const f = toLin(y);
+        proc[i*4] = proc[i*4+1] = proc[i*4+2] = f; proc[i*4+3] = a/255; 
+      } else {
+        proc[i*4] = toLin(r); proc[i*4+1] = toLin(g); proc[i*4+2] = toLin(b); proc[i*4+3] = a/255;
+      }
+    }
+
+    const distributeError = (x,y,er,eg,eb,kernel)=>{
+      for(const [dx,dy,wr,wg,wb] of kernel){
+        const xx = x+dx, yy = y+dy; 
+        if(xx<0||yy<0||xx>=w||yy>=h) continue;
+        const idx = (yy*w+xx)*4;
+        proc[idx]   = clamp(proc[idx]   + er*wr, 0,1);
+        proc[idx+1] = clamp(proc[idx+1] + eg*wg, 0,1);
+        proc[idx+2] = clamp(proc[idx+2] + eb*wb, 0,1);
+      }
+    };
+
+    const FS = [ [1,0,7/16,7/16,7/16], [-1,1,3/16,3/16,3/16], [0,1,5/16,5/16,5/16], [1,1,1/16,1/16,1/16] ];
+    const JJN = [
+      [1,0,7/48,7/48,7/48], [2,0,5/48,5/48,5/48],
+      [-2,1,3/48,3/48,3/48],[-1,1,5/48,5/48,5/48],[0,1,7/48,7/48,7/48],[1,1,5/48,5/48,5/48],[2,1,3/48,3/48,3/48],
+      [-2,2,1/48,1/48,1/48],[-1,2,3/48,3/48,3/48],[0,2,5/48,5/48,5/48],[1,2,3/48,3/48,3/48],[2,2,1/48,1/48,1/48]
+    ];
+
+    // Process scanlines
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        const i = (y*w+x)*4;
+        // Ordered dither threshold (0..1), map to range -0.5 to +0.5
+        const threshold = (dither==='bayer4'||dither==='bayer8')? (tFunc(x,y) - 0.5) : 0;
+
+        let qr, qg, qb, rr, rg, rb;
+        for(let c=0;c<3;c++){
+          let f = proc[i+c]; // 0..1 linear
+          
+          // Apply ordered dithering threshold
+          if(dither==='bayer4' || dither==='bayer8'){
+            f = f + threshold / levels;
+            f = clamp(f, 0, 1);
+          }
+          
+          let code, q;
+          if(midrise){
+            // Mid-rise: decision boundaries at k/levels for k = 0,1,2,...,levels-1
+            code = Math.floor(f * levels);
+            code = clamp(code, 0, maxCode);
+            q = (code + 0.5) / levels;
+          } else {
+            // Mid-tread: decision boundaries at (k+0.5)/levels for k = 0,1,...,levels-2
+            code = Math.round(f * maxCode);
+            code = clamp(code, 0, maxCode);
+            q = code / maxCode;
+          }
+          
+          // Store quantized value and error
+          if(c===0){qr=q; rr=proc[i+c]-q;} 
+          else if(c===1){qg=q; rg=proc[i+c+1]-q;} 
+          else {qb=q; rb=proc[i+c+2]-q;}
+        }
+
+        // Error diffusion (FS or JJN)
+        if(dither==='fs' || dither==='jjn'){
+          const ker = dither==='fs' ? FS : JJN;
+          distributeError(x,y, rr, rg, rb, ker);
+        }
+
+        // Write quantized sample to output (convert back to sRGB if needed)
+        const R = fromLin(qr), G = fromLin(qg), B = fromLin(qb), A = Math.round(proc[i+3]*255);
+        out.data[i]=R; out.data[i+1]=G; out.data[i+2]=B; out.data[i+3]=A;
+
+        // Histogram (grayscale only)
+        if(mode==='gray'){
+          const code = midrise ? Math.floor(qr * levels) : Math.round(qr * maxCode);
+          const idx = clamp(code, 0, maxCode);
+          hist[idx]++;
+        }
+      }
+    }
+
+    return {imageData: out, hist, levels};
+  }
+
+  function mixImages(orig, quant, t){
+    const out = new ImageData(orig.width, orig.height);
+    for(let i=0;i<orig.data.length;i+=4){
+      out.data[i]   = Math.round((1-t)*orig.data[i]   + t*quant.data[i]);
+      out.data[i+1] = Math.round((1-t)*orig.data[i+1] + t*quant.data[i+1]);
+      out.data[i+2] = Math.round((1-t)*orig.data[i+2] + t*quant.data[i+2]);
+      out.data[i+3] = 255;
+    }
+    return out;
+  }
+
+  function computePSNR(a,b){
+    let mse=0; const n = a.data.length/4;
+    for(let i=0;i<a.data.length;i+=4){
+      const dr=a.data[i]-b.data[i];
+      const dg=a.data[i+1]-b.data[i+1];
+      const db=a.data[i+2]-b.data[i+2];
+      mse += (dr*dr + dg*dg + db*db)/3;
+    }
+    mse /= n; 
+    if(mse===0) return Infinity; 
+    return 10*Math.log10((255*255)/mse);
+  }
+
+  // ---------- Rendering ----------
+  function drawTo(ctx, img){ ctx.putImageData(img,0,0); }
+
+  function renderHistogram(hist, levels){
+    histogramEl.innerHTML = '';
+    if(!hist) return;
+    
+    // Determine column class based on number of levels
+    let colClass = 'cols-256';
+    if(levels <= 4) colClass = 'cols-2';
+    else if(levels <= 8) colClass = 'cols-4';
+    else if(levels <= 16) colClass = 'cols-8';
+    else if(levels <= 32) colClass = 'cols-16';
+    else if(levels <= 64) colClass = 'cols-32';
+    else if(levels <= 128) colClass = 'cols-64';
+    else if(levels <= 256) colClass = 'cols-128';
+    
+    histogramEl.className = `mini-grid ${colClass}`;
+    
+    const max = Math.max(...hist);
+    const numBins = Math.min(levels, hist.length);
+    
+    for(let i=0;i<numBins;i++){
+      const d = document.createElement('div');
+      const count = hist[i] || 0;
+      const h = max > 0 ? (count/max)*100 : 0;
+      
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = `${h}%`;
+      
+      const label = document.createElement('span');
+      label.className = 'label';
+      label.textContent = levels <= 16 ? i.toString() : '';
+      
+      d.appendChild(bar);
+      d.appendChild(label);
+      d.title = `Level ${i} (0x${i.toString(16).toUpperCase().padStart(2,'0')})\n${count} pixels (${(count/(256*256)*100).toFixed(1)}%)`;
+      
+      histogramEl.appendChild(d);
+    }
+  }
+
+  // ---------- Event wiring ----------
+  function updateUIBadges(){
+    const levels = Math.pow(2, state.bits);
+    bitsBadge.textContent = state.bits;
+    levelsBadge.textContent = levels;
+    modeBadge.textContent = state.mode==='gray'? 'Grayscale' : 'Color';
+  }
+
+  function recalc(){
+    if(!srcImageData) return;
+    loading.style.display='inline-block';
+    requestAnimationFrame(()=>{
+      const {imageData, hist, levels} = quantizeImage(srcImageData, state);
+      quantImageData = imageData;
+      // Mix
+      const mixed = state.mix<1 ? mixImages(srcImageData, quantImageData, state.mix) : quantImageData;
+      drawTo(outX, mixed);
+      drawTo(inX, srcImageData);
+      // Ranges & metrics
+      rangeBadge.textContent = `0…255`;
+      updateUIBadges();
+      const psnr = computePSNR(srcImageData, mixed);
+      psnrBadge.textContent = (psnr===Infinity? '∞' : psnr.toFixed(2)) + ' dB';
+      // Histogram only in gray mode
+      renderHistogram(state.mode==='gray' ? hist : null, state.bits);
+      loading.style.display='none';
+    });
+  }
+
+  // Input source handling
+  function loadFromImage(img){
+    const t = document.createElement('canvas'); 
+    t.width=t.height=256; 
+    const tx=t.getContext('2d');
+    tx.imageSmoothingEnabled = true; 
+    tx.clearRect(0,0,256,256);
+    coverDraw(img, tx, 256);
+    srcImageData = tx.getImageData(0,0,256,256);
+    recalc();
+  }
+
+  function pickChange(v){
+    const t = document.createElement('canvas'); 
+    t.width=t.height=256; 
+    const tx=t.getContext('2d');
+    
+    if(v==='gradient'){ 
+      drawGradient(tx,256); 
+      srcImageData = tx.getImageData(0,0,256,256);
+      recalc();
+    }
+    else if(v==='checker'){ 
+      drawChecker(tx,256,16); 
+      srcImageData = tx.getImageData(0,0,256,256);
+      recalc();
+    }
+    else if(v==='portrait'){
+      const img = new Image(); 
+      img.crossOrigin='anonymous'; 
+      img.onload=()=>loadFromImage(img); 
+      img.src=DEFAULT_PORTRAIT;
+    }
+    else if(v==='dogs'){
+      const img = new Image(); 
+      img.crossOrigin='anonymous'; 
+      img.onload=()=>loadFromImage(img); 
+      img.src=DEFAULT_DOGS;
+    }
+  }
+
+  // Hover inspector
+  function setupHover(canvas, dot){
+    let last = null;
+    const parentWrap = canvas.parentElement;
+    
+    canvas.addEventListener('mousemove', e=>{
+      if(!srcImageData || !quantImageData) return;
+      const rect = canvas.getBoundingClientRect();
+      const parentRect = parentWrap.getBoundingClientRect();
+      const x = Math.floor((e.clientX-rect.left)/rect.width * 256);
+      const y = Math.floor((e.clientY-rect.top)/rect.height * 256);
+      
+      if(x < 0 || x >= 256 || y < 0 || y >= 256) return;
+      if(x===last?.x && y===last?.y) return; 
+      last={x,y};
+      
+      dot.style.display='block'; 
+      dot.style.left=`${e.clientX-parentRect.left}px`; 
+      dot.style.top=`${e.clientY-parentRect.top}px`;
+      
+      // Pull values
+      const i = (y*256+x)*4;
+      const r = srcImageData.data[i], g = srcImageData.data[i+1], b = srcImageData.data[i+2];
+      const qr = quantImageData.data[i];
+      const qg = quantImageData.data[i+1];
+      const qb = quantImageData.data[i+2];
+
+      // Recreate quantization math for inspector
+      const bits = state.bits; 
+      const levels = Math.pow(2, bits);
+      const maxCode = levels - 1;
+      const qtype = state.quant;
+      const gammaMode = state.gamma;
+
+      function explainChannel(name, val, outVal){
+        const lin = gammaMode==='linear' ? (val/255) : srgbToLinear(val);
+        const midrise = (qtype==='midrise');
+        const code = midrise ? Math.floor(lin*levels) : Math.round(lin*maxCode);
+        const codeC = clamp(code, 0, maxCode);
+        const q = midrise ? ( (codeC+0.5)/levels ) : ( codeC/maxCode );
+        const disp = gammaMode==='linear' ? clamp(Math.round(q*255),0,255) : linearToSrgb(q);
+        return `${name}: in ${val} → ${lin.toFixed(4)} lin → code ${codeC}/${maxCode} → q ${q.toFixed(4)} → out ${outVal} (calc: ${disp})`;
+      }
+
+      let lines = [`Pos (${x}, ${y})  |  Bits=${bits}  Mode=${state.mode}  Gamma=${gammaMode}  Quant=${state.quant}  Dither=${state.dither}`];
+      if(state.mode==='gray'){
+        const ysrgb = Math.round(0.2126*r + 0.7152*g + 0.0722*b);
+        lines.push(explainChannel('Y', ysrgb, qr));
+        lines.push(`Display: ${qr}`);
+      } else {
+        lines.push(explainChannel('R', r, qr));
+        lines.push(explainChannel('G', g, qg));
+        lines.push(explainChannel('B', b, qb));
+        lines.push(`Display: (${qr}, ${qg}, ${qb})`);
+      }
+      inspectorBox.textContent = lines.join('\n');
+    });
+    
+    canvas.addEventListener('mouseleave', ()=>{ 
+      dot.style.display='none'; 
+      inspectorBox.textContent = `Hover the image to see pixel math:\n1) Read pixel (sRGB)\n2) Convert to {linear or sRGB}\n3) Quantize to N levels (based on bits & quantizer)\n4) Dither adjustment (if any)\n5) Convert back to sRGB → display value`; 
+    });
+  }
+
+  // Drag & drop
+  document.addEventListener('dragover', e=>{ 
+    e.preventDefault(); 
+    document.body.style.background='rgba(122,162,255,0.1)'; 
+  });
+  document.addEventListener('dragleave', ()=>{ 
+    document.body.style.background=''; 
+  });
+  document.addEventListener('drop', e=>{
+    e.preventDefault(); 
+    document.body.style.background='';
+    const f = e.dataTransfer.files && e.dataTransfer.files[0]; 
+    if(!f) return;
+    const img = new Image(); 
+    img.onload=()=>loadFromImage(img); 
+    img.src=URL.createObjectURL(f);
+  });
+
+  // Wiring
+  $$('#imgPick').addEventListener('change', e=> pickChange(e.target.value));
+  $$('#fileInput').addEventListener('change', e=>{ 
+    const f=e.target.files[0]; 
+    if(!f) return; 
+    const img=new Image(); 
+    img.onload=()=>loadFromImage(img); 
+    img.src=URL.createObjectURL(f); 
+  });
+  $$$('input[name="mode"]').forEach(r=> r.addEventListener('change', e=>{ state.mode=e.target.value; recalc(); }));
+  $$$('input[name="gamma"]').forEach(r=> r.addEventListener('change', e=>{ state.gamma=e.target.value; recalc(); }));
+  $$$('input[name="quant"]').forEach(r=> r.addEventListener('change', e=>{ state.quant=e.target.value; recalc(); }));
+  $$$('input[name="dither"]').forEach(r=> r.addEventListener('change', e=>{ state.dither=e.target.value; recalc(); }));
+  $$('#bitSlider').addEventListener('input', e=>{ 
+    state.bits=parseInt(e.target.value,10); 
+    $$('#bitLabel').textContent = `${state.bits}-bit`; 
+    recalc(); 
+  });
+  $$('#mix').addEventListener('input', e=>{ 
+    state.mix=parseFloat(e.target.value); 
+    $$('#mixLabel').textContent=`${Math.round(state.mix*100)}%`; 
+    recalc(); 
+  });
+  $$('#zoom').addEventListener('input', e=>{ 
+    state.zoom=parseInt(e.target.value,10); 
+    $$('#zoomLabel').textContent = `${state.zoom}×`; 
+  });
+  $$('#randomize').addEventListener('click', ()=>{
+    const randBits = [1,2,3,4,5,6,7,8][Math.floor(Math.random()*8)];
+    const dithers = ['none','bayer4','bayer8','fs','jjn'];
+    const modes = ['gray','color'];
+    state.bits = randBits; 
+    $$('#bitSlider').value = randBits; 
+    $$('#bitLabel').textContent=`${randBits}-bit`;
+    state.dither = dithers[Math.floor(Math.random()*dithers.length)]; 
+    $$$('input[name="dither"]').forEach(i=>i.checked = (i.value===state.dither));
+    state.mode = modes[Math.floor(Math.random()*modes.length)]; 
+    $$$('input[name="mode"]').forEach(i=>i.checked = (i.value===state.mode));
+    recalc();
+  });
+
+  setupHover(inC, dotIn); 
+  setupHover(outC, dotOut);
+
+  // Init
+  function init(){
+    // Default: gradient
+    pickChange('gradient');
+  }
+  init();
+  </script>
+</body>
+</html>
