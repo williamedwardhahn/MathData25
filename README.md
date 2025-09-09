@@ -5,6 +5,7 @@
 
 
 ## Interactive Labs
+[Bit Depth](https://williamedwardhahn.github.io/MathData25/bit_depth.html)
 [Convolution](https://williamedwardhahn.github.io/MathData25/Conv1_a.html)
 
 
