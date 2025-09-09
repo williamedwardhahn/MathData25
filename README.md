@@ -4,6 +4,10 @@
 [Load Data from Github](https://colab.research.google.com/drive/1ntd-gp2X1rplBODZOs1tAE-3BqqvxSS1?usp=sharing)
 
 
+## Interactive Labs
+[Convolution](https://williamedwardhahn.github.io/MathData25/Conv1_a.html)
+
+
 ## Presentation Links
 [Demos 1](https://docs.google.com/document/d/1xf0PaTv_Pc2hxcHCOmVNEVzL_oX9RWF4T6JbAlzSiU8/edit?usp=sharing)
 
