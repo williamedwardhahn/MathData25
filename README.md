@@ -1,27 +1,23 @@
-# Links
-
-
-
+# 
 
 ## Notebooks
 [Load Data from Github](https://colab.research.google.com/drive/1ntd-gp2X1rplBODZOs1tAE-3BqqvxSS1?usp=sharing)
 
-## Video Links
-[The Computer Programme (1): It's Happening Now](https://www.youtube.com/watch?v=jtMWEiCdsfc)
 
-[The Computer Programme (2): Just One Thing After Another](https://www.youtube.com/watch?v=OFUHjDhTIJg)
-
-[The Computer Programme (3): Talking To A Machine (Programming Languages)](https://www.youtube.com/watch?v=7Mr3Csyb0Qw)
-
-[Mathematics](https://www.youtube.com/watch?v=gV67Sj2jkVg)
-
-[Alexnet](https://www.youtube.com/watch?v=AgkfIQ4IGaM)
-
-[The Computer Programme (4): It's on the Computer](https://clp.bbcrewind.co.uk/e2b5dd518bb6fca385dbc4368148bdc1)
-
-
-
-## Demos
+## Presentation Links
 [Demos 1](https://docs.google.com/document/d/1xf0PaTv_Pc2hxcHCOmVNEVzL_oX9RWF4T6JbAlzSiU8/edit?usp=sharing)
 
 
+## Video Links
+[The Computer Programme Series](https://clp.bbcrewind.co.uk/de37d97905d37f58038f2d7c8341ff4b)
+
+[Alexnet](https://www.youtube.com/watch?v=AgkfIQ4IGaM)
+
+[The Age of Intelligent Machines](https://www.youtube.com/watch?v=subiSt2Mf4Y)
+
+
+
+## Course Setup
+[Part 1](https://github.com/williamedwardhahn/MathData25/blob/main/setup1.md)
+
+[Part 2](https://github.com/williamedwardhahn/MathData25/blob/main/setup2.md)
