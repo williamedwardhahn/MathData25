@@ -29,6 +29,8 @@
 ## Video Links
 [The Computer Programme Series](https://clp.bbcrewind.co.uk/de37d97905d37f58038f2d7c8341ff4b)
 
+[Commputers 101 Playlist](https://youtube.com/playlist?list=PLWmIsQcAzRkpFcFL0SLGO8ee7qSyAQT-Y&si=VnFTPAEwyRwat9DO)
+
 [Alexnet](https://www.youtube.com/watch?v=AgkfIQ4IGaM)
 
 [The Age of Intelligent Machines](https://www.youtube.com/watch?v=subiSt2Mf4Y)
