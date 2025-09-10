@@ -9,6 +9,10 @@
 
 [Pixel Combinatorics](https://williamedwardhahn.github.io/MathData25/pixelcombo.html)
 
+[Image Parameters](https://williamedwardhahn.github.io/MathData25/image1.html)
+
+[Image Gamma](https://williamedwardhahn.github.io/MathData25/gamma.html)
+
 [Matrix Multiplication](https://williamedwardhahn.github.io/MathData25/matrix_multiplication_lab.html)
 
 [Convolution](https://williamedwardhahn.github.io/MathData25/Conv1_a.html)
