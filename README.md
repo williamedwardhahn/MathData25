@@ -11,6 +11,8 @@
 
 [Convolution](https://williamedwardhahn.github.io/MathData25/Conv1_a.html)
 
+[Pooling](https://williamedwardhahn.github.io/MathData25/pool.html)
+
 [Alexnet Filter](https://williamedwardhahn.github.io/MathData25/alexnet.html)
 
 
