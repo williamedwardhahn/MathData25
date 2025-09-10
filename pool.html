@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Interactive Pooling Explorer</title>
+<style>
+:root{
+  --bg:#0b0d12;--panel:#121621;--muted:#8b93a7;--text:#e9edf5;--accent:#7aa2ff;--success:#4caf50;
+}
+body{margin:0;background:linear-gradient(180deg,#0b0d12,#0e1320);color:var(--text);
+  font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+  display:flex;flex-direction:column;align-items:center;min-height:100vh}
+header{padding:16px 20px;border-bottom:1px solid #1d2333;background:rgba(10,14,25,.7);
+  backdrop-filter:saturate(140%) blur(6px);position:sticky;top:0;width:100%;z-index:10}
+h1{font-size:20px;margin:0;font-weight:700}
+.container{max-width:1200px;margin:20px auto;padding:0 16px;width:100%}
+.row{display:grid;grid-template-columns:300px 1fr;gap:18px}
+@media(max-width:768px){.row{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid #242a3b;border-radius:14px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.panel h2{margin:0 0 8px;font-size:16px;color:#bfc7dc}
+label{font-size:13px;color:#b7bfd6;font-weight:500}
+select,button{width:100%;padding:8px 10px;border-radius:8px;border:1px solid #2a3046;background:#0f1424;color:var(--text);cursor:pointer}
+button:hover,select:hover{border-color:#3b4672}
+.grids{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.grid{display:grid;gap:2px}
+.grid div{display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:600;border-radius:4px;width:36px;height:36px}
+.input-grid div{background:#1c2336;border:1px solid #2a3046;color:#9fb7ff;cursor:pointer;transition:all 0.15s}
+.output-grid div{background:#1a3d1a;border:1px solid #2d5a2d;color:#9eff9e;transition:all 0.15s}
+.highlight{background:#35426a !important;border-color:#7aa2ff !important;color:#fff !important}
+.active-out{background:#275327 !important;border-color:#4caf50 !important;color:#fff !important}
+.mathBox{margin-top:14px;font-size:13px;background:#0e1426;border:1px solid #263055;border-radius:10px;padding:12px;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;line-height:1.5;min-height:60px}
+.sub{font-size:12px;color:#8b93a7;margin:6px 0 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>📉 Interactive Pooling Explorer</h1>
+</header>
+
+<main class="container">
+  <section class="row">
+    <div class="panel">
+      <h2>Controls</h2>
+      <div>
+        <label>Pooling Type</label>
+        <select id="poolType">
+          <option value="max">Max Pooling</option>
+          <option value="avg">Average Pooling</option>
+          <option value="min">Min Pooling</option>
+        </select>
+      </div>
+      <div style="margin-top:12px">
+        <label>Pool Size</label>
+        <select id="poolSize">
+          <option value="2">2×2</option>
+          <option value="3">3×3</option>
+        </select>
+      </div>
+      <div style="margin-top:12px">
+        <label>Stride</label>
+        <select id="stride">
+          <option value="1">1</option>
+          <option value="2" selected>2</option>
+          <option value="3">3</option>
+        </select>
+      </div>
+      <div style="margin-top:12px">
+        <button id="randomize">🎲 Randomize Input</button>
+        <p class="sub">Hover on the <strong>input</strong> grid to view the active window and math.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Visualization</h2>
+      <div class="grids">
+        <div>
+          <h3 style="font-size:14px;color:#8b93a7">Input</h3>
+          <div id="inputGrid" class="grid input-grid"></div>
+        </div>
+        <div>
+          <h3 style="font-size:14px;color:#8b93a7">Output</h3>
+          <div id="outputGrid" class="grid output-grid"></div>
+        </div>
+      </div>
+      <div class="mathBox" id="mathBox">Hover over input cells to see pooling math.</div>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ---------- Elements ---------- */
+const inputGrid = document.getElementById("inputGrid");
+const outputGrid = document.getElementById("outputGrid");
+const mathBox   = document.getElementById("mathBox");
+const poolTypeEl= document.getElementById("poolType");
+const poolSizeEl= document.getElementById("poolSize");
+const strideEl  = document.getElementById("stride");
+const randomizeBtn = document.getElementById("randomize");
+
+/* ---------- State ---------- */
+const inSize = 6;       // 6×6 input
+let inputData = [];     // 2D array
+let outW = 0, outH = 0; // output dims (kept as numbers)
+
+/* ---------- Build input grid ---------- */
+function genInput(){
+  inputData = [];
+  inputGrid.style.gridTemplateColumns = `repeat(${inSize},36px)`;
+  inputGrid.innerHTML = "";
+  for(let y=0; y<inSize; y++){
+    const row = [];
+    for(let x=0; x<inSize; x++){
+      const v = Math.floor(Math.random()*10);
+      row.push(v);
+      const cell = document.createElement("div");
+      cell.textContent = v;
+      cell.dataset.x = x;
+      cell.dataset.y = y;
+      inputGrid.appendChild(cell);
+    }
+    inputData.push(row);
+  }
+}
+
+/* ---------- Compute & render output ---------- */
+function applyPooling(){
+  const type   = poolTypeEl.value;
+  const size   = parseInt(poolSizeEl.value,10);
+  const stride = parseInt(strideEl.value,10);
+
+  outH = Math.floor((inSize - size)/stride) + 1;
+  outW = Math.floor((inSize - size)/stride) + 1;
+
+  outputGrid.style.gridTemplateColumns = `repeat(${outW},40px)`;
+  outputGrid.innerHTML = "";
+
+  for(let oy=0; oy<outH; oy++){
+    for(let ox=0; ox<outW; ox++){
+      const values = [];
+      for(let ky=0; ky<size; ky++){
+        for(let kx=0; kx<size; kx++){
+          values.push(inputData[oy*stride+ky][ox*stride+kx]);
+        }
+      }
+      let outVal;
+      if(type==="max") outVal = Math.max(...values);
+      else if(type==="min") outVal = Math.min(...values);
+      else {
+        const sum = values.reduce((a,b)=>a+b,0);
+        outVal = sum / values.length;            // keep numeric
+        outVal = Math.round(outVal*10)/10;       // format to 1 decimal
+      }
+
+      const cell = document.createElement("div");
+      cell.textContent = outVal;
+      cell.dataset.ox = ox;
+      cell.dataset.oy = oy;
+      cell.dataset.values = JSON.stringify(values); // for math panel
+      outputGrid.appendChild(cell);
+    }
+  }
+}
+
+/* ---------- Hover logic (reads current controls live) ---------- */
+function onInputHover(e){
+  const tgt = e.target;
+  if(tgt.parentElement !== inputGrid) return;
+  const x = parseInt(tgt.dataset.x,10);
+  const y = parseInt(tgt.dataset.y,10);
+
+  const type   = poolTypeEl.value;
+  const size   = parseInt(poolSizeEl.value,10);
+  const stride = parseInt(strideEl.value,10);
+
+  highlightWindow(x,y,size,stride,type);
+}
+function onInputLeave(){
+  clearHighlights();
+  mathBox.textContent = "Hover over input cells to see pooling math.";
+}
+
+/* ---------- Highlight + Math ---------- */
+function highlightWindow(x,y,size,stride,type){
+  clearHighlights();
+
+  // Iterate all output cells; find which window contains (x,y)
+  const outCells = outputGrid.querySelectorAll("div");
+
+  outCells.forEach(outCell=>{
+    const ox = parseInt(outCell.dataset.ox,10);
+    const oy = parseInt(outCell.dataset.oy,10);
+    const startX = ox*stride, startY = oy*stride;
+
+    // Is (x,y) inside this window?
+    if(x>=startX && x<startX+size && y>=startY && y<startY+size){
+      // Highlight input window
+      const lines = [];
+      let flat = [];
+
+      for(let ky=0; ky<size; ky++){
+        const lineVals = [];
+        for(let kx=0; kx<size; kx++){
+          const cx = startX + kx;
+          const cy = startY + ky;
+          const inp = inputGrid.querySelector(`div[data-x="${cx}"][data-y="${cy}"]`);
+          if(inp) inp.classList.add("highlight");
+          const v = inputData[cy][cx];
+          lineVals.push(v);
+          flat.push(v);
+        }
+        lines.push(lineVals);
+      }
+
+      // Highlight output cell
+      outCell.classList.add("active-out");
+
+      // Math box
+      const sum = flat.reduce((a,b)=>a+b,0);
+      const avg = Math.round((sum/flat.length)*100)/100;
+
+      let math = `Window at output (ox=${ox}, oy=${oy})\n`;
+      math += lines.map(row=>"[ "+row.join("  ")+" ]").join("\n")+"\n\n";
+      if(type==="max"){
+        math += `max(${flat.join(", ")}) = ${Math.max(...flat)}`;
+      } else if(type==="min"){
+        math += `min(${flat.join(", ")}) = ${Math.min(...flat)}`;
+      } else {
+        math += `avg = ( ${flat.join(" + ")} ) / ${flat.length} = ${sum} / ${flat.length} = ${avg}`;
+      }
+      mathBox.textContent = math;
+    }
+  });
+}
+
+function clearHighlights(){
+  inputGrid.querySelectorAll("div").forEach(c=>c.classList.remove("highlight"));
+  outputGrid.querySelectorAll("div").forEach(c=>c.classList.remove("active-out"));
+}
+
+/* ---------- Wiring ---------- */
+function rebuild(){
+  genInput();
+  applyPooling();
+  // (re)bind hover once on the container (no duplicate listeners)
+  inputGrid.removeEventListener("mousemove", onInputHover);
+  inputGrid.removeEventListener("mouseleave", onInputLeave);
+  inputGrid.addEventListener("mousemove", onInputHover);
+  inputGrid.addEventListener("mouseleave", onInputLeave);
+}
+
+poolTypeEl.addEventListener("change", applyPooling);
+poolSizeEl.addEventListener("change", applyPooling);
+strideEl.addEventListener("change", applyPooling);
+randomizeBtn.addEventListener("click", rebuild);
+
+/* ---------- Init ---------- */
+rebuild();
+</script>
+</body>
+</html>
+
