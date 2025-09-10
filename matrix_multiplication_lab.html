@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Linear Algebra Lab — Matrix Multiplication</title>
+<style>
+:root{--bg:#0b0d12;--panel:#121621;--muted:#8b93a7;--text:#e9edf5;--accent:#7aa2ff;--accent-2:#ff4d4d;--success:#4caf50}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#0b0d12,#0e1320);color:var(--text);
+  font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+  display:flex;flex-direction:column;align-items:center;min-height:100vh}
+header{display:flex;gap:16px;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid #1d2333;background:rgba(10,14,25,.7);
+  backdrop-filter:saturate(140%) blur(6px);position:sticky;top:0;z-index:10;width:100%;max-width:1400px}
+h1{font-size:20px;margin:0;font-weight:700}
+.badge{background:#1a2545;border:1px solid #2b3552;border-radius:999px;font-size:12px;padding:6px 10px}
+.badge.success{background:#1a3d1a;border-color:#2d5a2d;color:#90ee90}
+.container{max-width:1400px;margin:18px auto;padding:0 16px;width:100%}
+.section{display:grid;grid-template-columns:360px 1fr;gap:18px;margin-bottom:18px}
+@media (max-width:980px){.section{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid #242a3b;border-radius:14px;padding:14px 16px;box-shadow:0 8px 26px rgba(0,0,0,.25)}
+.panel h2{margin:0 0 8px;font-size:16px;color:#bfc7dc}
+.panel h3{margin:10px 0 8px;font-size:14px;color:#bfc7dc}
+.sub{font-size:12px;color:var(--muted);margin:2px 0 10px}
+.controls{display:grid;gap:12px}
+.control{display:grid;gap:6px}
+label{font-size:12px;color:#b7bfd6;font-weight:600}
+.range{display:flex;gap:10px;align-items:center}
+.range input[type="range"]{flex:1;cursor:pointer;height:6px;border-radius:3px;background:#1a2036;outline:none}
+.range input[type="range"]::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer}
+.range input[type="range"]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
+.range .val{min-width:72px;text-align:right;font-weight:600;color:#cfe1ff}
+.button-row{display:flex;gap:8px;flex-wrap:wrap}
+button{cursor:pointer;background:linear-gradient(180deg,#1b2140,#121933);border:1px solid #2b3352;color:var(--text);padding:8px 12px;border-radius:10px;font-size:14px;transition:all 0.2s}
+button:hover{border-color:#3b4362;transform:translateY(-1px)}
+button.primary{background:linear-gradient(180deg,#3552ff,#1a2cd1);border-color:#5b72ff}
+button.primary:hover{border-color:#6b82ff;background:linear-gradient(180deg,#4562ff,#2a3ce1)}
+.grid{display:grid;gap:6px;align-items:start;justify-content:start}
+.mat{display:grid;gap:4px;padding:10px;background:#0f1424;border:1px solid #2a3046;border-radius:10px}
+.mat input{width:56px;padding:8px;border-radius:8px;border:1px solid #2a3046;background:#0b1020;color:var(--text);
+  font-family:ui-monospace,Menlo,Consolas,monospace;text-align:right;font-size:13px;transition:all 0.2s}
+.mat input:hover{border-color:#3a4056}
+.mat input:focus{border-color:var(--accent);outline:none}
+.mat .cell{width:56px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;
+  background:#0b1020;border:1px solid #2a3046;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;transition:all 0.2s}
+.mat .cell:hover{border-color:#3a4056}
+.dim{font-size:12px;color:#9fb0d6;margin-top:6px}
+.eq{font-size:14px;background:#0e1426;border:1px solid #263055;border-radius:10px;padding:10px;white-space:pre-wrap;margin-top:10px;font-family:ui-monospace,Menlo,Consolas,monospace}
+.eq strong{color:var(--accent)}
+.op{font-weight:700;color:#7aa2ff}
+.sep{border:0;border-top:1px solid #24304a;margin:12px 0}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#9fb0d6}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid #2a3046}
+i.row{background:#1a2545;border-color:#7aa2ff}
+i.col{background:#1a3d1a;border-color:#4caf50}
+i.cell{background:#2e2445;border-color:#b07cff}
+.highlightR{background:#1a2545 !important;border-color:#7aa2ff !important}
+.highlightC{background:#1a3d1a !important;border-color:#4caf50 !important}
+.highlightRC{background:#2e2445 !important;border-color:#b07cff !important}
+.animStatus{font-size:12px;color:#9fb0d6;margin-left:8px}
+</style>
+</head>
+<body>
+<header>
+  <h1>📐 Linear Algebra Lab — Matrix Multiplication</h1>
+  <div class="badge success">Interactive • Visual • Step-by-step</div>
+</header>
+
+<main class="container">
+
+  <!-- Matrix × Matrix -->
+  <section class="section" style="grid-template-columns: 1fr; max-width: 1200px; margin: 0 auto;">
+    <div class="panel">
+      <h2>Matrix × Matrix Multiplication</h2>
+      <p class="sub">Set sizes so that <strong>A</strong> (m×n) and <strong>B</strong> (n×p) are compatible. Hover or click a cell in <strong>C = A×B</strong> to see the row·column dot product that produced it.</p>
+      <div class="controls">
+        <div class="control">
+          <label>m (rows of A)</label>
+          <div class="range"><input id="m" type="range" min="1" max="8" value="3"><span class="val" id="mVal">3</span></div>
+        </div>
+        <div class="control">
+          <label>n (cols of A = rows of B)</label>
+          <div class="range"><input id="n" type="range" min="1" max="8" value="4"><span class="val" id="nVal">4</span></div>
+        </div>
+        <div class="control">
+          <label>p (cols of B)</label>
+          <div class="range"><input id="p" type="range" min="1" max="8" value="3"><span class="val" id="pVal">3</span></div>
+        </div>
+        <div class="button-row">
+          <button id="randA">Random A</button>
+          <button id="randB">Random B</button>
+          <button id="clearAll">Clear</button>
+          <button id="stepAnim" class="primary">▶ Step animation</button>
+          <span class="animStatus" id="animStatus">idle</span>
+        </div>
+      </div>
+      <hr class="sep">
+      <div class="legend">
+        <span><i class="row"></i> A's row i</span>
+        <span><i class="col"></i> B's column j</span>
+        <span><i class="cell"></i> C(i,j)</span>
+      </div>
+      
+      <div class="grid" style="grid-template-columns:auto auto auto 1fr;gap:16px;margin-top:16px">
+        <div>
+          <div class="mat" id="matA"></div>
+          <div class="dim" id="dimA">A ∈ ℝ<sup>3×4</sup></div>
+        </div>
+        <div style="align-self:center" class="op">×</div>
+        <div>
+          <div class="mat" id="matB"></div>
+          <div class="dim" id="dimB">B ∈ ℝ<sup>4×3</sup></div>
+        </div>
+        <div>
+          <div class="mat" id="matC"></div>
+          <div class="dim" id="dimC">C = A×B ∈ ℝ<sup>3×3</sup></div>
+        </div>
+      </div>
+      <div class="eq" id="mmEq">C[i,j] = Σ<sub>k=1..n</sub> A[i,k] · B[k,j]</div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// selector helpers
+const $  = (s) => document.querySelector(s);
+const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+// ---------- matrix helpers ----------
+function makeMatrix(container, r, c, editable=true, idPrefix="cell"){
+  container.innerHTML = "";
+  container.style.gridTemplateColumns = `repeat(${c}, 56px)`;
+  const cells=[];
+  for(let i=0;i<r;i++){
+    const row=[];
+    for(let j=0;j<c;j++){
+      let el;
+      if(editable){
+        el=document.createElement("input");
+        el.type="number"; el.step="0.1"; el.value=(Math.random()*4-2).toFixed(1);
+      }else{
+        el=document.createElement("div");
+        el.className="cell";
+        el.textContent="—";
+      }
+      el.dataset.i=i; el.dataset.j=j; el.id=`${idPrefix}_${i}_${j}`;
+      container.appendChild(el);
+      row.push(el);
+    }
+    cells.push(row);
+  }
+  return cells;
+}
+
+function readMatrix(cells){
+  const r=cells.length, c=cells[0].length;
+  const A=Array.from({length:r},()=>Array(c).fill(0));
+  for(let i=0;i<r;i++) for(let j=0;j<c;j++){
+    const raw = (cells[i][j].tagName==="INPUT") ? cells[i][j].value : cells[i][j].textContent;
+    const v=parseFloat(raw);
+    A[i][j]=Number.isFinite(v)?v:0;
+  }
+  return A;
+}
+
+function writeMatrix(cells, A){
+  for(let i=0;i<cells.length;i++) for(let j=0;j<cells[0].length;j++){
+    const v=A[i][j];
+    const el=cells[i][j];
+    if(el.tagName==="INPUT") el.value = Number.isFinite(v)? v.toFixed(1):"0.0";
+    else el.textContent = Number.isFinite(v)? Number(v.toFixed(2)):"—";
+  }
+}
+
+function randomize(cells, lo=-3, hi=3){
+  for(let i=0;i<cells.length;i++) for(let j=0;j<cells[0].length;j++){
+    const v = lo + Math.random()*(hi-lo);
+    if(cells[i][j].tagName==="INPUT") cells[i][j].value=v.toFixed(1);
+    else cells[i][j].textContent=v.toFixed(2);
+  }
+}
+
+function zero(cells){
+  for(let i=0;i<cells.length;i++) for(let j=0;j<cells[0].length;j++){
+    if(cells[i][j].tagName==="INPUT") cells[i][j].value="0";
+    else cells[i][j].textContent="0";
+  }
+}
+
+function dimLabel(el, txt){ el.innerHTML = txt; }
+
+// ---------- Matrix × Matrix ----------
+const m=$("#m"), n=$("#n"), p=$("#p");
+const mVal=$("#mVal"), nVal=$("#nVal"), pVal=$("#pVal");
+const matA=$("#matA"), matB=$("#matB"), matC=$("#matC");
+const dimA=$("#dimA"), dimB=$("#dimB"), dimC=$("#dimC");
+const mmEq=$("#mmEq");
+const randA=$("#randA"), randB=$("#randB"), clearAll=$("#clearAll");
+const stepAnim=$("#stepAnim"), animStatus=$("#animStatus");
+
+let cellsA = makeMatrix(matA, 3, 4, true, "A");
+let cellsB = makeMatrix(matB, 4, 3, true, "B");
+let cellsC = makeMatrix(matC, 3, 3, false, "C");
+
+function updateDims(){
+  const M=parseInt(m.value), N=parseInt(n.value), P=parseInt(p.value);
+  mVal.textContent=M; nVal.textContent=N; pVal.textContent=P;
+  cellsA = makeMatrix(matA, M, N, true, "A");
+  cellsB = makeMatrix(matB, N, P, true, "B");
+  cellsC = makeMatrix(matC, M, P, false, "C");
+  dimA.innerHTML = `A ∈ ℝ<sup>${M}×${N}</sup>`;
+  dimB.innerHTML = `B ∈ ℝ<sup>${N}×${P}</sup>`;
+  dimC.innerHTML = `C = A×B ∈ ℝ<sup>${M}×${P}</sup>`;
+  attachMatrixListeners();
+  computeProduct();
+}
+
+function computeProduct(){
+  const A = readMatrix(cellsA);
+  const B = readMatrix(cellsB);
+  const M=A.length, N=(A[0]||[]).length, P=(B[0]||[]).length;
+  const C=Array.from({length:M},()=>Array(P).fill(0));
+  for(let i=0;i<M;i++){
+    for(let j=0;j<P;j++){
+      let s=0;
+      for(let k=0;k<N;k++) s += (A[i][k]||0)*(B[k]?.[j]||0);
+      C[i][j]=s;
+    }
+  }
+  writeMatrix(cellsC, C);
+  mmEq.innerHTML = `C[i,j] = Σ<sub>k=1..${N}</sub> A[i,k] · B[k,j]`;
+}
+
+function attachMatrixListeners(){
+  cellsA.flat().forEach(el=> {
+    el.removeEventListener("input", computeProduct);
+    el.addEventListener("input", computeProduct);
+  });
+  cellsB.flat().forEach(el=> {
+    el.removeEventListener("input", computeProduct);
+    el.addEventListener("input", computeProduct);
+  });
+  cellsC.flat().forEach(el=>{
+    el.addEventListener("mouseenter", ()=>{
+      const i=parseInt(el.dataset.i), j=parseInt(el.dataset.j);
+      highlightRC(i,j);
+      showEqFor(i,j);
+    });
+    el.addEventListener("mouseleave", ()=>{
+      clearHighlights();
+      mmEq.innerHTML = `C[i,j] = Σ<sub>k=1..${parseInt(n.value)}</sub> A[i,k] · B[k,j]`;
+    });
+  });
+}
+
+function clearHighlights(){
+  cellsA.flat().forEach(e=>e.classList.remove("highlightR"));
+  cellsB.flat().forEach(e=>e.classList.remove("highlightC"));
+  cellsC.flat().forEach(e=>e.classList.remove("highlightRC"));
+}
+
+function highlightRC(i,j){
+  clearHighlights();
+  if(i < cellsA.length){
+    cellsA[i].forEach(e=> e.classList.add("highlightR"));
+  }
+  for(let r=0;r<cellsB.length;r++){ 
+    if(cellsB[r] && cellsB[r][j]){
+      cellsB[r][j].classList.add("highlightC");
+    }
+  }
+  if(cellsC[i] && cellsC[i][j]){
+    cellsC[i][j].classList.add("highlightRC");
+  }
+}
+
+function showEqFor(i,j){
+  const A = readMatrix(cellsA);
+  const B = readMatrix(cellsB);
+  const N=(A[0]||[]).length;
+  const parts=[]; let sum=0;
+  for(let k=0;k<N;k++){
+    const a=A[i]?.[k]??0, b=B[k]?.[j]??0, prod=a*b;
+    parts.push(`${a.toFixed(2)}×${b.toFixed(2)}`);
+    sum += prod;
+  }
+  mmEq.innerHTML = `C[${i+1},${j+1}] = ${parts.join(" + ")} = <strong>${sum.toFixed(2)}</strong>`;
+}
+
+// random & clear
+randA.addEventListener("click", ()=>{ randomize(cellsA); computeProduct(); });
+randB.addEventListener("click", ()=>{ randomize(cellsB); computeProduct(); });
+clearAll.addEventListener("click", ()=>{ zero(cellsA); zero(cellsB); computeProduct(); });
+
+// step animation
+let animTimer=null, animIdx=0;
+stepAnim.addEventListener("click", ()=>{
+  if(animTimer){ 
+    clearInterval(animTimer); 
+    animTimer=null; 
+    animStatus.textContent="idle"; 
+    stepAnim.textContent="▶ Step animation"; 
+    clearHighlights();
+    return; 
+  }
+  const M=cellsC.length, P=cellsC[0].length;
+  animIdx=0; 
+  animStatus.textContent="running…"; 
+  stepAnim.textContent="⏸ Pause";
+  animTimer=setInterval(()=>{
+    const i=Math.floor(animIdx/P), j=animIdx%P;
+    highlightRC(i,j); 
+    showEqFor(i,j);
+    animIdx++;
+    if(animIdx>=M*P){ 
+      clearInterval(animTimer); 
+      animTimer=null; 
+      animStatus.textContent="done"; 
+      stepAnim.textContent="▶ Step animation"; 
+    }
+  }, 800);
+});
+
+// size sliders
+m.addEventListener("input", updateDims);
+n.addEventListener("input", updateDims);
+p.addEventListener("input", updateDims);
+
+// Initialize
+updateDims();
+</script>
+</body>
+</html>
