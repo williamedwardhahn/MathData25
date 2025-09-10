@@ -11,6 +11,8 @@
 
 [Convolution](https://williamedwardhahn.github.io/MathData25/Conv1_a.html)
 
+[Alexnet Filter](https://williamedwardhahn.github.io/MathData25/alexnet.html)
+
 
 ## Presentation Links
 [Demos 1](https://docs.google.com/document/d/1xf0PaTv_Pc2hxcHCOmVNEVzL_oX9RWF4T6JbAlzSiU8/edit?usp=sharing)
