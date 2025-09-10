@@ -9,6 +9,8 @@
 
 [Pixel Combinatorics](https://williamedwardhahn.github.io/MathData25/pixelcombo.html)
 
+[Matrix Multiplication](https://williamedwardhahn.github.io/MathData25/matrix_multiplication_lab.html)
+
 [Convolution](https://williamedwardhahn.github.io/MathData25/Conv1_a.html)
 
 [Pooling](https://williamedwardhahn.github.io/MathData25/pool.html)
