@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AlexNet Teaching Lab — Interactive Architecture & Shapes</title>
+<style>
+:root{
+  --bg:#0b0d12;--panel:#121621;--muted:#8b93a7;--text:#e9edf5;
+  --accent:#7aa2ff;--accent-2:#ff4d4d;--success:#4caf50;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:linear-gradient(180deg,#0b0d12,#0e1320);color:var(--text);
+  font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+  display:flex;flex-direction:column;align-items:center;min-height:100vh
+}
+header{
+  display:flex;gap:16px;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid #1d2333;background:rgba(10,14,25,.7);
+  backdrop-filter:saturate(140%) blur(6px);position:sticky;top:0;z-index:10;width:100%;max-width:1400px
+}
+h1{font-size:20px;margin:0;font-weight:700}
+.badge{background:#1a2545;border:1px solid #2b3552;border-radius:999px;font-size:12px;padding:6px 10px}
+.badge.success{background:#1a3d1a;border-color:#2d5a2d;color:#90ee90}
+.container{max-width:1400px;margin:18px auto;padding:0 16px;width:100%}
+.grid{
+  display:grid;grid-template-columns:340px 1fr;gap:18px
+}
+@media (max-width: 980px){.grid{grid-template-columns:1fr}}
+.panel{
+  background:var(--panel);border:1px solid #242a3b;border-radius:14px;padding:14px 16px;
+  box-shadow:0 8px 26px rgba(0,0,0,.25)
+}
+.panel h2{margin:0 0 8px;font-size:16px;color:#bfc7dc}
+.sub{font-size:12px;color:var(--muted);margin:2px 0 10px}
+.controls{display:grid;gap:12px}
+.control{display:grid;gap:6px}
+label{font-size:12px;color:#b7bfd6;font-weight:600}
+select,input[type="file"],button{
+  width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2a3046;background:#0f1424;color:var(--text)
+}
+.range{display:flex;gap:10px;align-items:center}
+.range input[type="range"]{flex:1;cursor:pointer}
+.range .val{min-width:72px;text-align:right;font-weight:600;color:#cfe1ff}
+.toggles{display:flex;gap:8px;flex-wrap:wrap}
+.toggles label{display:flex;gap:6px;align-items:center;background:#0f1424;border:1px solid #2a3046;border-radius:999px;padding:7px 10px;font-size:12px}
+.toggles input{accent-color:#6f92ff}
+.small{font-size:12px;color:#9fb0d6}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;font-size:13px}
+.kv div:nth-child(odd){color:#9fb0d6}
+.stage{display:flex;gap:16px;flex-wrap:wrap}
+.canvas-wrap{position:relative;border-radius:14px;overflow:hidden;background:#0a0f1f;border:1px solid #242a3b;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+.canvas-wrap header{position:absolute;inset:auto auto 10px 10px;background:rgba(13,18,35,.9);border:1px solid #263055;border-radius:8px;padding:6px 10px;font-size:13px;font-weight:700}
+canvas{display:block;width:256px;height:256px;image-rendering:crisp-edges}
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table th,.table td{border-bottom:1px solid #242a3b;padding:8px 10px;text-align:left}
+.table th{color:#cbd5f5;font-weight:700;background:#151a2a;position:sticky;top:0}
+.table tr:hover td{background:#121a2c}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.badgePill{background:#0e1528;border:1px solid #263055;border-radius:999px;padding:6px 10px;font-size:12px}
+.footer{margin:28px auto;color:var(--muted);font-size:13px;text-align:center;max-width:780px}
+.note{font-size:12px;color:#8b93a7}
+hr.sep{border:0;border-top:1px solid #24304a;margin:12px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>👟 AlexNet Teaching Lab</h1>
+  <div class="badge success">Shapes • Params • FLOPs • Receptive Field</div>
+</header>
+
+<main class="container">
+  <section class="grid">
+    <!-- LEFT: inputs & explainer -->
+    <div class="panel">
+      <h2>Step 1 — Choose input & presets</h2>
+      <p class="sub">Load an image (scaled to AlexNet size), then explore layers and math.</p>
+      <div class="controls">
+        <div class="control">
+          <label>Sample image</label>
+          <select id="imgPick">
+            <option value="dogs">Dog Breeds (color)</option>
+            <option value="portrait">Portrait</option>
+            <option value="checker">Checkerboard</option>
+            <option value="gradient">Gradient</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>Upload image</label>
+          <input id="file" type="file" accept="image/*">
+        </div>
+        <div class="control">
+          <label>Input size (AlexNet used 227×227)</label>
+          <div class="range">
+            <input id="inSize" type="range" min="96" max="256" value="227">
+            <span class="val" id="inSizeVal">227×227</span>
+          </div>
+        </div>
+        <div class="toggles">
+          <label><input id="gray" type="checkbox"> Force grayscale (toy conv runs faster)</label>
+        </div>
+      </div>
+
+      <hr class="sep">
+      <h2>What is AlexNet?</h2>
+      <div class="kv">
+        <div>Paper</div><div>Krizhevsky, Sutskever, Hinton (2012)</div>
+        <div>Key ideas</div><div>Large kernels early (11×11 s4), ReLU, LRN, MaxPool, deep conv stack, big FC layers, Dropout</div>
+        <div>Input</div><div>~227×227×3 image</div>
+        <div>Output</div><div>1000-way ImageNet classification</div>
+      </div>
+      <div class="badges">
+        <span class="badgePill">ReLU nonlinearity</span>
+        <span class="badgePill">Local Response Norm (LRN)</span>
+        <span class="badgePill">MaxPool 3×3 s2</span>
+        <span class="badgePill">Dropout in FC</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: calculators & visualizer -->
+    <div class="panel">
+      <h2>Step 2 — Shapes, Params, FLOPs, Receptive Field</h2>
+      <p class="sub">These are computed live from the classic AlexNet hyperparameters.</p>
+      <div style="overflow:auto; max-height:360px">
+        <table class="table" id="shapeTable">
+          <thead><tr>
+            <th>Layer</th><th>Kernel / Stride / Pad</th><th>In (H×W×C)</th><th>Out (H×W×C)</th><th>Params</th><th>FLOPs (≈)</th><th>RF</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="badges" id="totals"></div>
+
+      <hr class="sep">
+      <h2>Step 3 — Toy forward pass (Conv1 → ReLU → Pool1)</h2>
+      <p class="sub">We apply a small set of handcrafted Conv1-like filters to illustrate feature maps (for speed).</p>
+      <div class="stage">
+        <div class="canvas-wrap">
+          <header>Input</header>
+          <canvas id="inCanvas" width="256" height="256"></canvas>
+        </div>
+        <div class="canvas-wrap">
+          <header>Conv1 (toy)</header>
+          <canvas id="convCanvas" width="256" height="256"></canvas>
+        </div>
+        <div class="canvas-wrap">
+          <header>After Pool1</header>
+          <canvas id="poolCanvas" width="256" height="256"></canvas>
+        </div>
+      </div>
+      <p class="note">Note: Real AlexNet uses 96 learned 11×11×3 filters at stride 4 (we show a tiny subset on a downscaled buffer).</p>
+    </div>
+  </section>
+
+  <p class="footer">
+    Try changing the input size to see how every layer’s <strong>spatial size, parameter count, FLOPs, and receptive field</strong> change.  
+    The toy forward pass demonstrates how early filters respond to edges and textures, and how pooling reduces resolution while gaining invariance.
+  </p>
+</main>
+
+<script>
+// ---------- DOM helpers ----------
+const $$ = s => document.querySelector(s);
+const $$$ = s => Array.from(document.querySelectorAll(s));
+
+// ---------- Sample images ----------
+const IMG = {
+  dogs:"https://upload.wikimedia.org/wikipedia/commons/1/18/Dog_Breeds.jpg",
+  portrait:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Human_faces.jpg/1200px-Human_faces.jpg",
+  checker:null,
+  gradient:null
+};
+
+// ---------- AlexNet canonical hyperparams ----------
+const AlexNet = [
+  {name:"conv1", type:"conv", k:11, s:4, p:0, inC:3, outC:96},
+  {name:"lrn1",  type:"lrn"},
+  {name:"pool1", type:"pool", k:3, s:2, p:0},
+  {name:"conv2", type:"conv", k:5, s:1, p:2, outC:256}, // inC inferred from prev outC
+  {name:"lrn2",  type:"lrn"},
+  {name:"pool2", type:"pool", k:3, s:2, p:0},
+  {name:"conv3", type:"conv", k:3, s:1, p:1, outC:384},
+  {name:"conv4", type:"conv", k:3, s:1, p:1, outC:384},
+  {name:"conv5", type:"conv", k:3, s:1, p:1, outC:256},
+  {name:"pool3", type:"pool", k:3, s:2, p:0},
+  {name:"fc6",   type:"fc",  outC:4096},
+  {name:"drop6", type:"dropout"},
+  {name:"fc7",   type:"fc",  outC:4096},
+  {name:"drop7", type:"dropout"},
+  {name:"fc8",   type:"fc",  outC:1000},
+];
+
+// ---------- Calculators ----------
+function outDim(n, k, s, p){ return Math.floor((n - k + 2*p)/s) + 1; }
+
+function layerwiseShapes(inputHW, inputC){
+  // compute shapes, params, flops, receptive field
+  let H=inputHW, W=inputHW, C=inputC;
+  let rf=1, // receptive field size
+      jump=1; // effective stride at current layer
+  const rows=[];
+  let totalParams=0n, totalFlops=0n;
+
+  AlexNet.forEach((L,i)=>{
+    let K=L.k||0, S=L.s||1, P=L.p||0;
+    let inH=H, inW=W, inC=C;
+    let params=0n, flops=0n;
+    let outH=inH, outW=inW, outC=inC;
+
+    if(L.type==="conv"){
+      // infer inC from previous layer if needed
+      if(!L.inC) L.inC = inC;
+      outH = outDim(inH, K, S, P);
+      outW = outDim(inW, K, S, P);
+      outC = L.outC;
+      params = BigInt((K*K*L.inC*L.outC) + L.outC); // +bias
+      // MACs ~ outH*outW*outC*(K*K*inC); FLOPs ~ 2*MACs
+      const macs = BigInt(outH*outW*outC*(K*K*L.inC));
+      flops = macs * 2n;
+
+      // receptive field update
+      rf = rf + (K-1)*jump;
+      jump = jump * S;
+    }
+    else if(L.type==="pool"){
+      outH = outDim(inH, K, S, P);
+      outW = outDim(inW, K, S, P);
+      // channels unchanged
+      // params/flops ~ 0
+      rf = rf + (K-1)*jump;
+      jump = jump * S;
+    }
+    else if(L.type==="lrn"){
+      // sizes unchanged
+    }
+    else if(L.type==="fc"){
+      // flatten previous
+      const inUnits = inH*inW*inC;
+      params = BigInt(inUnits * L.outC + L.outC);
+      // MACs ~ inUnits*outC
+      flops = BigInt(inUnits) * BigInt(L.outC) * 2n;
+      outH = 1; outW = 1; outC = L.outC;
+      // rf doesn't change meaningfully for FC (covers all)
+    }
+    else if(L.type==="dropout"){
+      // no params
+    }
+
+    rows.push({
+      layer:L.name,
+      ksp:(L.k?`${L.k} / ${L.s} / ${L.p||0}`:"—"),
+      in:`${inH}×${inW}×${inC}`,
+      out:`${outH}×${outW}×${outC}`,
+      params,
+      flops,
+      rf
+    });
+
+    // update for next
+    H=outH; W=outW; C=outC;
+    totalParams += params;
+    totalFlops  += flops;
+  });
+
+  return {rows, totalParams, totalFlops};
+}
+
+function human(nBig){
+  // format bigints with underscores
+  const s=nBig.toString();
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+// ---------- UI: Shapes table ----------
+function renderShapes(){
+  const inSize = parseInt($("#inSize").value);
+  $("#inSizeVal").textContent = `${inSize}×${inSize}`;
+  const {rows,totalParams,totalFlops}=layerwiseShapes(inSize, 3);
+  const tbody = $("#shapeTable tbody");
+  tbody.innerHTML="";
+  rows.forEach(r=>{
+    const tr=document.createElement("tr");
+    const td=(t)=>{const e=document.createElement("td"); e.textContent=t; return e;};
+    tr.appendChild(td(r.layer));
+    tr.appendChild(td(r.ksp));
+    tr.appendChild(td(r.in));
+    tr.appendChild(td(r.out));
+    tr.appendChild(td(r.params===0n?"—":human(r.params)));
+    tr.appendChild(td(r.flops===0n?"—":human(r.flops)));
+    tr.appendChild(td(r.rf?`${r.rf}×${r.rf}`:"—"));
+    tbody.appendChild(tr);
+  });
+  const totals = $("#totals");
+  totals.innerHTML="";
+  const pill=(label,val)=>{const s=document.createElement("span"); s.className="badgePill"; s.textContent=`${label}: ${val}`; totals.appendChild(s);};
+  pill("Total parameters", human(totalParams));
+  pill("Total FLOPs (≈ per forward)", human(totalFlops));
+}
+
+// ---------- Toy forward: Conv1-ish filters (fast demo) ----------
+const inC=$("#inCanvas"), convC=$("#convCanvas"), poolC=$("#poolCanvas");
+const inX=inC.getContext("2d"), convX=convC.getContext("2d"), poolX=poolC.getContext("2d");
+
+function drawCover(img, ctx, size){
+  const s=size;
+  ctx.clearRect(0,0,s,s);
+  const scale=Math.max(s/img.width, s/img.height);
+  const w=img.width*scale, h=img.height*scale;
+  const dx=(s-w)/2, dy=(s-h)/2;
+  ctx.drawImage(img, dx, dy, w, h);
+}
+
+function toLuma(imgData){
+  const d=imgData.data, n=d.length/4;
+  const g=new Float32Array(n);
+  for(let i=0;i<n;i++){
+    const r=d[i*4], g1=d[i*4+1], b=d[i*4+2];
+    g[i]=0.2126*r+0.7152*g1+0.0722*b;
+  }
+  return {data:g,w:imgData.width,h:imgData.height};
+}
+
+// generate a small bank of oriented edge filters (~11×11) approximations
+function makeConv1Kernels(){
+  const ks=11, half=(ks-1)/2;
+  const angles=[0,45,90,135].map(a=>a*Math.PI/180);
+  const kernels=[];
+  angles.forEach(theta=>{
+    const K=new Float32Array(ks*ks);
+    for(let y=-half;y<=half;y++){
+      for(let x=-half;x<=half;x++){
+        // oriented edge / Gabor-lite
+        const xr =  x*Math.cos(theta)+y*Math.sin(theta);
+        const yr = -x*Math.sin(theta)+y*Math.cos(theta);
+        const gauss = Math.exp(-(xr*xr + (yr*yr)*2)/(2*half*half));
+        const edge  = Math.sign(xr); // crude odd filter
+        K[(y+half)*ks+(x+half)]=gauss*edge;
+      }
+    }
+    // zero-mean
+    const mean=K.reduce((a,b)=>a+b,0)/K.length;
+    for(let i=0;i<K.length;i++) K[i]-=mean;
+    kernels.push(K);
+  });
+  // add a blob detector
+  const Kblob=new Float32Array(ks*ks);
+  for(let y=-half;y<=half;y++){
+    for(let x=-half;x<=half;x++){
+      const r2=x*x+y*y;
+      Kblob[(y+half)*ks+(x+half)]=Math.exp(-r2/(2*half*half));
+    }
+  }
+  const mean=Kblob.reduce((a,b)=>a+b,0)/Kblob.length;
+  for(let i=0;i<Kblob.length;i++) Kblob[i]-=mean;
+  kernels.push(Kblob);
+  return kernels; // 5 filters
+}
+
+function convValidGray(src, w, h, K, ks, stride){
+  const outW=Math.floor((w-ks)/stride)+1;
+  const outH=Math.floor((h-ks)/stride)+1;
+  const out=new Float32Array(outW*outH);
+  let idx=0;
+  for(let y=0;y<=h-ks;y+=stride){
+    for(let x=0;x<=w-ks;x+=stride){
+      let acc=0;
+      for(let j=0;j<ks;j++){
+        for(let i=0;i<ks;i++){
+          acc += K[j*ks+i] * src[(y+j)*w + (x+i)];
+        }
+      }
+      out[idx++]=acc;
+    }
+  }
+  return {data:out,w:outW,h:outH};
+}
+function relu(v){return v>0?v:0;}
+function maxPool2D(src,w,h,k=3,s=2){
+  const outW=Math.floor((w-k)/s)+1;
+  const outH=Math.floor((h-k)/s)+1;
+  const out=new Float32Array(outW*outH);
+  let idx=0;
+  for(let y=0;y<=h-k;y+=s){
+    for(let x=0;x<=w-k;x+=s){
+      let m=-1e9;
+      for(let j=0;j<k;j++){
+        for(let i=0;i<k;i++){
+          const v=src[(y+j)*w + (x+i)];
+          if(v>m) m=v;
+        }
+      }
+      out[idx++]=m;
+    }
+  }
+  return {data:out,w:outW,h:outH};
+}
+function normalizeToU8(arr){
+  let lo=Infinity, hi=-Infinity;
+  for(let v of arr){ if(v<lo)lo=v; if(v>hi)hi=v; }
+  const out=new Uint8ClampedArray(arr.length);
+  const eps=1e-6, scale=255/Math.max(eps,(hi-lo));
+  for(let i=0;i<arr.length;i++) out[i]=Math.max(0,Math.min(255,Math.round((arr[i]-lo)*scale)));
+  return out;
+}
+function drawGrayTo(ctx, data, w, h){
+  const img=ctx.createImageData(w,h);
+  const u8 = (data instanceof Uint8ClampedArray)? data : normalizeToU8(data);
+  for(let i=0;i<w*h;i++){
+    const v=u8[i]; img.data[i*4]=v; img.data[i*4+1]=v; img.data[i*4+2]=v; img.data[i*4+3]=255;
+  }
+  ctx.putImageData(img,0,0);
+}
+
+// ---------- Image load & processing ----------
+let sourceImage=new Image(); sourceImage.crossOrigin="anonymous";
+const inSizeEl=$("#inSize"), grayEl=$("#gray");
+
+function loadSample(kind){
+  if(kind==="checker"){
+    const t=document.createElement("canvas"); t.width=t.height=256;
+    const x=t.getContext("2d"); const cells=16, s=256/cells;
+    for(let y=0;y<cells;y++) for(let c=0;c<cells;c++){
+      const v=((y+c)&1)?220:30; x.fillStyle=`rgb(${v},${v},${v})`; x.fillRect(c*s,y*s,s,s);
+    }
+    const img=new Image(); img.src=t.toDataURL(); img.onload=()=>{sourceImage=img; redrawAll();};
+    return;
+  }
+  if(kind==="gradient"){
+    const t=document.createElement("canvas"); t.width=t.height=256;
+    const x=t.getContext("2d"); const g=x.createLinearGradient(0,0,256,256);
+    g.addColorStop(0,"#000"); g.addColorStop(1,"#fff"); x.fillStyle=g; x.fillRect(0,0,256,256);
+    const img=new Image(); img.src=t.toDataURL(); img.onload=()=>{sourceImage=img; redrawAll();};
+    return;
+  }
+  const url = IMG[kind] || IMG.dogs;
+  const img=new Image(); img.crossOrigin="anonymous"; img.onload=()=>{sourceImage=img; redrawAll();}; img.src=url;
+}
+
+function redrawAll(){
+  const targ = 227; // draw to 227 then center into 256 canvas for clarity
+  const tmp=document.createElement("canvas"); tmp.width=tmp.height=targ;
+  const tx=tmp.getContext("2d");
+  // draw cover into 227x227
+  tx.clearRect(0,0,targ,targ);
+  const scale=Math.max(targ/sourceImage.width, targ/sourceImage.height);
+  const w=sourceImage.width*scale, h=sourceImage.height*scale;
+  const dx=(targ-w)/2, dy=(targ-h)/2;
+  tx.drawImage(sourceImage, dx, dy, w, h);
+  const imgData = tx.getImageData(0,0,targ,targ);
+  // show on input canvas centered
+  inX.clearRect(0,0,256,256);
+  inX.putImageData(imgData,(256-targ)/2,(256-targ)/2);
+
+  // toy conv on grayscale (or luma)
+  const lum = toLuma(imgData);
+  const kernels = makeConv1Kernels(); // 5 filters
+  // emulate stride 4 by downsampling before conv to keep things fast and visible
+  const ds = 1; // keep at 1 for clarity
+  let src = lum.data, w0=lum.w, h0=lum.h;
+  if(ds>1){
+    const outW=Math.floor(w0/ds), outH=Math.floor(h0/ds);
+    const dsd=new Float32Array(outW*outH);
+    for(let y=0;y<outH;y++) for(let x=0;x<outW;x++){
+      dsd[y*outW+x]=src[(y*ds)*w0 + (x*ds)];
+    }
+    src=dsd; w0=outW; h0=outH;
+  }
+  // convolve with first kernel and relu
+  const K=kernels[0], ks=11, stride=1;
+  const c1 = convValidGray(src,w0,h0,K,ks,stride);
+  for(let i=0;i<c1.data.length;i++) c1.data[i]=Math.max(0,c1.data[i]); // ReLU
+  // pool 3x3 s2
+  const p1 = maxPool2D(c1.data, c1.w, c1.h, 3, 2);
+
+  // draw conv map centered
+  convX.clearRect(0,0,256,256);
+  const convImg = convX.createImageData(c1.w,c1.h);
+  const convU8 = normalizeToU8(c1.data);
+  for(let i=0;i<c1.w*c1.h;i++){
+    const v=convU8[i]; convImg.data[i*4]=convImg.data[i*4+1]=convImg.data[i*4+2]=v; convImg.data[i*4+3]=255;
+  }
+  convX.putImageData(convImg,(256-c1.w)/2,(256-c1.h)/2);
+
+  // draw pool map centered
+  poolX.clearRect(0,0,256,256);
+  const poolImg = poolX.createImageData(p1.w,p1.h);
+  const poolU8 = normalizeToU8(p1.data);
+  for(let i=0;i<p1.w*p1.h;i++){
+    const v=poolU8[i]; poolImg.data[i*4]=poolImg.data[i*4+1]=poolImg.data[i*4+2]=v; poolImg.data[i*4+3]=255;
+  }
+  poolX.putImageData(poolImg,(256-p1.w)/2,(256-p1.h)/2);
+}
+
+// ---------- Wiring ----------
+$("#imgPick").addEventListener("change", e=> loadSample(e.target.value));
+$("#file").addEventListener("change", e=>{
+  const f=e.target.files?.[0]; if(!f) return;
+  const img=new Image(); img.onload=()=>{sourceImage=img; redrawAll();}; img.src=URL.createObjectURL(f);
+});
+$("#inSize").addEventListener("input", renderShapes);
+$("#gray").addEventListener("change", ()=>{ /* placeholder if you want grayscale-only draw */ redrawAll();});
+
+// drag & drop
+document.addEventListener('dragover', e=>{e.preventDefault(); document.body.style.background='rgba(122,162,255,0.08)'});
+document.addEventListener('dragleave', ()=>{document.body.style.background=''});
+document.addEventListener('drop', e=>{
+  e.preventDefault(); document.body.style.background='';
+  const f=e.dataTransfer.files && e.dataTransfer.files[0]; if(!f) return;
+  const img=new Image(); img.onload=()=>{sourceImage=img; redrawAll();}; img.src=URL.createObjectURL(f);
+});
+
+// ---------- Init ----------
+function init(){
+  renderShapes();
+  loadSample("dogs");
+}
+init();
+</script>
+</body>
+</html>
+
