@@ -3,6 +3,8 @@
 ## Notebooks
 [Load Data from Github](https://colab.research.google.com/drive/1ntd-gp2X1rplBODZOs1tAE-3BqqvxSS1?usp=sharing)
 
+[Alexnet Filters](https://colab.research.google.com/drive/12EDpdilYa8S6F0ZnhlGtdjulZIa50lFP?usp=sharing)
+
 
 ## Interactive Labs
 [Bit Depth](https://williamedwardhahn.github.io/MathData25/bit_depth.html)
