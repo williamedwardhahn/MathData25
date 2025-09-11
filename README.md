@@ -31,7 +31,7 @@
 
 [With a Little Help from the Chip](https://clp.bbcrewind.co.uk/e6cf9d36e23a3a0b8fd954cc96a0b361)
 
-[Commputers 101 Playlist](https://youtube.com/playlist?list=PLWmIsQcAzRkpFcFL0SLGO8ee7qSyAQT-Y&si=VnFTPAEwyRwat9DO)
+[Computers 101 Playlist](https://youtube.com/playlist?list=PLWmIsQcAzRkpFcFL0SLGO8ee7qSyAQT-Y&si=VnFTPAEwyRwat9DO)
 
 [Alexnet](https://www.youtube.com/watch?v=AgkfIQ4IGaM)
 
