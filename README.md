@@ -7,6 +7,8 @@
 ## Interactive Labs
 [Bit Depth](https://williamedwardhahn.github.io/MathData25/bit_depth.html)
 
+[Color Maps](https://williamedwardhahn.github.io/MathData25/colors.html)
+
 [Pixel Combinatorics](https://williamedwardhahn.github.io/MathData25/pixelcombo.html)
 
 [Image Parameters](https://williamedwardhahn.github.io/MathData25/image1.html)
