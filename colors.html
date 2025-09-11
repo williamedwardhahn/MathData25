@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Colormap Lab — Simple (Grayscale Inputs, Robust Loading)</title>
+<style>
+:root{--bg:#0b0d12;--panel:#121621;--muted:#8b93a7;--text:#e9edf5;--accent:#7aa2ff}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#0b0d12,#0e1320);color:var(--text);
+  font:14px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+  display:flex;flex-direction:column;align-items:center;min-height:100vh}
+header{padding:14px 16px;border-bottom:1px solid #1d2333;background:rgba(10,14,25,.7);backdrop-filter:saturate(140%) blur(6px);position:sticky;top:0;width:100%;z-index:10}
+h1{margin:0;font-size:18px}
+main{max-width:1100px;width:100%;padding:14px}
+.panel{background:#121621;border:1px solid #242a3b;border-radius:12px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media (max-width:900px){.controls{grid-template-columns:1fr}}
+label{font-size:12px;color:#b7bfd6;font-weight:700}
+select{width:100%;padding:10px;border-radius:10px;border:1px solid #2a3046;background:#0f1424;color:var(--text)}
+.stage{display:grid;grid-template-columns:270px 270px 1fr;gap:14px;align-items:start;margin-top:12px}
+@media (max-width:900px){.stage{grid-template-columns:1fr;}}
+.canvasCard{position:relative;border:1px solid #242a3b;border-radius:12px;overflow:hidden;background:#0a0f1f}
+.canvasCard header{position:absolute;inset:auto auto 8px 8px;background:rgba(13,18,35,.92);border:1px solid #263055;border-radius:8px;padding:4px 8px;font-size:12px;font-weight:700}
+canvas{display:block;width:256px;height:256px;image-rendering:crisp-edges}
+.rightCol{display:grid;gap:10px}
+.bar{background:#0e1426;border:1px solid #263055;border-radius:10px;padding:10px}
+#bigBar{height:16px;border-radius:8px;border:1px solid #2a3046;position:relative;overflow:hidden}
+.tick{position:absolute;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.5)}
+.badges{display:flex;gap:8px;flex-wrap:wrap;font-size:12px}
+.badges span{background:#0e1528;border:1px solid #263055;border-radius:999px;padding:4px 8px}
+.rows{display:grid;gap:6px}
+.rowTitle{font-size:12px;color:#9fb0d6;margin-top:4px}
+.cells{display:grid;gap:2px}
+.cell{height:20px;border:1px solid #2a3046;border-radius:4px}
+.small{font-size:12px;color:#8b93a7}
+.math{font-family:ui-monospace,Menlo,Consolas,monospace;background:#0e1426;border:1px solid #263055;border-radius:10px;padding:10px;white-space:pre-wrap;line-height:1.5}
+</style>
+</head>
+<body>
+<header>
+  <h1>🗺️ Colormap Lab — Simple</h1>
+</header>
+
+<main>
+  <div class="panel">
+    <div class="controls">
+      <div>
+        <label>Sample</label>
+        <select id="imgPick">
+          <option value="dogs" selected>Dogs (source: color → display as grayscale)</option>
+          <option value="portrait">Portrait (source: grayscale)</option>
+          <option value="gradient">Gradient</option>
+          <option value="checker">Checkerboard</option>
+        </select>
+      </div>
+      <div>
+        <label>Bit depth</label>
+        <select id="bitDepth">
+          <option value="1">1 bit (2 levels)</option>
+          <option value="2">2 bits (4 levels)</option>
+          <option value="3">3 bits (8 levels)</option>
+          <option value="4">4 bits (16 levels)</option>
+          <option value="5">5 bits (32 levels)</option>
+          <option value="6">6 bits (64 levels)</option>
+          <option value="7">7 bits (128 levels)</option>
+          <option value="8" selected>8 bits (256 levels)</option>
+        </select>
+      </div>
+      <div>
+        <label>Colormap</label>
+        <select id="cmap">
+          <option value="viridis" selected>Viridis (perceptual)</option>
+          <option value="plasma">Plasma</option>
+          <option value="inferno">Inferno</option>
+          <option value="magma">Magma</option>
+          <option value="turbo">Turbo</option>
+          <option value="coolwarm">Coolwarm (diverging)</option>
+          <option value="jet">Jet (legacy)</option>
+          <option value="grayscale">Grayscale</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="canvasCard">
+        <header>Input (displayed as grayscale)</header>
+        <canvas id="inC" width="256" height="256" aria-label="grayscale input"></canvas>
+      </div>
+      <div class="canvasCard">
+        <header>Output (false color)</header>
+        <canvas id="outC" width="256" height="256" aria-label="false color output"></canvas>
+      </div>
+
+      <div class="rightCol">
+        <div class="bar">
+          <div class="badges">
+            <span>Map: <strong id="mapName">viridis</strong></span>
+            <span>Levels: <strong id="levelsB">256</strong></span>
+          </div>
+          <div id="bigBar"><div id="bigTick" class="tick" style="left:-9999px"></div></div>
+          <div class="small">Hover the input image to see the level position on the bar.</div>
+        </div>
+
+        <div class="rows">
+          <div class="rowTitle">Quantized levels</div>
+          <div id="cellsGray" class="cells"></div>
+          <div class="rowTitle">Mapped colors</div>
+          <div id="cellsColor" class="cells"></div>
+        </div>
+
+        <div id="mathBox" class="math">Hover for details…</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ===== DOM ===== */
+const inC=document.getElementById('inC'), outC=document.getElementById('outC');
+const inX=inC.getContext('2d'), outX=outC.getContext('2d');
+const imgPick=document.getElementById('imgPick');
+const bitDepth=document.getElementById('bitDepth');
+const cmapSel=document.getElementById('cmap');
+const mapName=document.getElementById('mapName');
+const levelsB=document.getElementById('levelsB');
+const bigBar=document.getElementById('bigBar'); const bigTick=document.getElementById('bigTick');
+const cellsGray=document.getElementById('cellsGray'); const cellsColor=document.getElementById('cellsColor');
+const mathBox=document.getElementById('mathBox');
+
+/* ===== Constants & State ===== */
+const W=256,H=256;
+const SAMPLES = {
+  dogs: "https://upload.wikimedia.org/wikipedia/commons/1/18/Dog_Breeds.jpg",
+  portrait: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Human_faces.jpg/1200px-Human_faces.jpg"
+};
+let gray=null;           // Float32Array (0..255)
+let levels=256;
+let selected="viridis";
+
+/* ===== Helpers ===== */
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const toHex=n=>n.toString(16).toUpperCase().padStart(2,"0");
+
+function drawImageCoveredTo(ctx, img, size=256){
+  const s=size; const scale=Math.max(s/img.naturalWidth, s/img.naturalHeight);
+  const w=img.naturalWidth*scale, h=img.naturalHeight*scale; const dx=(s-w)/2, dy=(s-h)/2;
+  ctx.clearRect(0,0,s,s); ctx.drawImage(img,dx,dy,w,h);
+}
+
+function getGrayscaleFromContext(ctx){
+  const d=ctx.getImageData(0,0,W,H).data;
+  const g=new Float32Array(W*H);
+  for(let i=0;i<g.length;i++){
+    const r=d[i*4], gg=d[i*4+1], b=d[i*4+2];
+    g[i]=0.2126*r+0.7152*gg+0.0722*b; // luminance
+  }
+  return g;
+}
+
+function paintGrayscaleToContext(ctx, g){
+  const img = ctx.createImageData(W,H);
+  for(let i=0;i<g.length;i++){
+    const v = Math.round(clamp(g[i],0,255));
+    img.data[i*4]=v; img.data[i*4+1]=v; img.data[i*4+2]=v; img.data[i*4+3]=255;
+  }
+  ctx.putImageData(img,0,0);
+}
+
+/* ===== Colormaps (anchor-based) ===== */
+function lerp(a,b,t){return a+(b-a)*t;}
+function lerpRGB(c1,c2,t){return [Math.round(lerp(c1[0],c2[0],t)),Math.round(lerp(c1[1],c2[1],t)),Math.round(lerp(c1[2],c2[2],t))];}
+function cm_from_stops(stops){
+  return t=>{
+    t=clamp(t,0,1);
+    for(let i=0;i<stops.length-1;i++){
+      const a=stops[i], b=stops[i+1];
+      if(t>=a.t && t<=b.t){ const u=(t-a.t)/(b.t-a.t); return lerpRGB(a.c,b.c,u); }
+    }
+    return stops[stops.length-1].c.slice();
+  }
+}
+const CMAPS = {
+  grayscale:{name:"grayscale",fn:cm_from_stops([{t:0,c:[0,0,0]},{t:1,c:[255,255,255]}])},
+  viridis:{name:"viridis",fn:cm_from_stops([{t:0.00,c:[68,1,84]},{t:0.25,c:[65,68,135]},{t:0.50,c:[42,120,142]},{t:0.75,c:[34,168,132]},{t:0.90,c:[122,209,81]},{t:1.00,c:[253,231,37]}])},
+  plasma:{name:"plasma",fn:cm_from_stops([{t:0.00,c:[13,8,135]},{t:0.25,c:[90,32,166]},{t:0.50,c:[204,71,120]},{t:0.75,c:[249,140,10]},{t:1.00,c:[240,249,33]}])},
+  inferno:{name:"inferno",fn:cm_from_stops([{t:0.00,c:[0,0,4]},{t:0.25,c:[60,12,95]},{t:0.50,c:[156,42,97]},{t:0.75,c:[230,97,0]},{t:1.00,c:[252,255,164]}])},
+  magma:{name:"magma",fn:cm_from_stops([{t:0.00,c:[0,0,4]},{t:0.25,c:[49,12,84]},{t:0.50,c:[126,39,116]},{t:0.75,c:[205,92,92]},{t:1.00,c:[252,253,191]}])},
+  coolwarm:{name:"coolwarm",fn:cm_from_stops([{t:0.00,c:[59,76,192]},{t:0.50,c:[247,247,247]},{t:1.00,c:[180,4,38]}])},
+  jet:{name:"jet",fn:function(t){t=clamp(t,0,1);const r=Math.round(255*clamp(1.5-Math.abs(4*t-3),0,1));const g=Math.round(255*clamp(1.5-Math.abs(4*t-2),0,1));const b=Math.round(255*clamp(1.5-Math.abs(4*t-1),0,1));return [r,g,b];}},
+  turbo:{name:"turbo",fn:function(t){t=clamp(t,0,1);
+    const r=34.61+t*(1172.33+t*(-10793.56+t*(33329.46+t*(-38394.49+t*14825.05))));
+    const g=23.31+t*(557.33+t*(1225.33+t*(-3574.96+t*(2600.50+t*-453.17))));
+    const b=27.20+t*(3211.10+t*(-15327.97+t*(27814.00+t*(-22569.18+t*6838.66))));
+    return [clamp(r,0,255)|0,clamp(g,0,255)|0,clamp(b,0,255)|0];}}
+};
+
+/* ===== Big bar drawing ===== */
+function drawBigBar(){
+  bigBar.innerHTML='';
+  const w=600,h=16; const can=document.createElement('canvas'); can.width=w; can.height=h; can.style.width='100%'; can.style.height=h+'px';
+  const cx=can.getContext('2d'); const img=cx.createImageData(w,h);
+  const fn=CMAPS[selected].fn;
+  for(let x=0;x<w;x++){
+    const t=x/(w-1); const [R,G,B]=fn(t);
+    for(let y=0;y<h;y++){ const i=(y*w+x)*4; img.data[i]=R; img.data[i+1]=G; img.data[i+2]=B; img.data[i+3]=255; }
+  }
+  cx.putImageData(img,0,0);
+  bigBar.appendChild(can);
+  bigBar.appendChild(bigTick);
+}
+
+/* ===== Cell arrays ===== */
+function buildCells(){
+  const N=levels;
+  const cols=Math.min(N, 32); // wrap for readability; both rows use same grid
+  cellsGray.style.gridTemplateColumns=`repeat(${cols}, 1fr)`;
+  cellsColor.style.gridTemplateColumns=`repeat(${cols}, 1fr)`;
+  cellsGray.innerHTML=''; cellsColor.innerHTML='';
+
+  for(let i=0;i<N;i++){
+    const q = (N===1)?0 : i/(N-1);
+    const x = Math.round(q*255);
+    // gray
+    const cg=document.createElement('div'); cg.className='cell';
+    cg.style.background=`rgb(${x},${x},${x})`;
+    cg.title = `level ${i+1}/${N}  gray=${x}`;
+    cellsGray.appendChild(cg);
+    // color
+    const [R,G,B]=CMAPS[selected].fn(q);
+    const cc=document.createElement('div'); cc.className='cell';
+    cc.style.background=`rgb(${R},${G},${B})`;
+    cc.title = `level ${i+1}/${N}  q=${q.toFixed(4)}  rgb(${R},${G},${B})  #${toHex(R)}${toHex(G)}${toHex(B)}`;
+    cellsColor.appendChild(cc);
+  }
+}
+
+/* ===== Processing ===== */
+function recolor(){
+  if(!gray) return;
+  const N=levels; const fn=CMAPS[selected].fn;
+  const out=outX.createImageData(W,H);
+  let p=0;
+  for(let i=0;i<W*H;i++){
+    const u = gray[i]/255;
+    const q = Math.round(u*(N-1))/(N-1);
+    const [R,G,B]=fn(q);
+    out.data[p++]=R; out.data[p++]=G; out.data[p++]=B; out.data[p++]=255;
+  }
+  outX.putImageData(out,0,0);
+}
+
+/* ===== Hover inspector ===== */
+function setupHover(){
+  inC.addEventListener('mousemove', e=>{
+    const r=inC.getBoundingClientRect();
+    const x=Math.floor((e.clientX-r.left)/r.width*W);
+    const y=Math.floor((e.clientY-r.top)/r.height*H);
+    if(x<0||y<0||x>=W||y>=H) return;
+    const gval = gray[y*W+x];
+    const u = gval/255;
+    const q = Math.round(u*(levels-1))/(levels-1);
+    const bar = bigBar.querySelector('canvas');
+    if(bar){
+      const w=bar.width; const px=Math.round(q*(w-1));
+      const br=bigBar.getBoundingClientRect();
+      const rel = px/(w-1)*br.width;
+      bigTick.style.left = (br.left + window.scrollX + rel) + 'px';
+    }
+    const [R,G,B]=CMAPS[selected].fn(q);
+    const hex=`#${toHex(R)}${toHex(G)}${toHex(B)}`;
+    mathBox.textContent =
+`x = ${Math.round(gval)} (0..255)
+u = x / 255 = ${u.toFixed(4)}
+N = ${levels} (bit-depth ${Math.log2(levels)|0})
+q = round(u·(N−1)) / (N−1) = ${q.toFixed(4)}
+C(q) → (R,G,B) = (${R}, ${G}, ${B}) → ${hex}`;
+  });
+  inC.addEventListener('mouseleave', ()=>{ bigTick.style.left='-9999px'; });
+}
+
+/* ===== Robust image loading (grayscale display) ===== */
+function loadSample(kind){
+  // draw into a hidden temp canvas first (to compute luminance), then
+  // render true grayscale into the visible input canvas.
+  const urlMap = {
+    dogs: SAMPLES.dogs,
+    portrait: SAMPLES.portrait
+  };
+
+  if(kind==='gradient'){
+    const t=document.createElement('canvas'); t.width=t.height=256; const x=t.getContext('2d');
+    const g=x.createLinearGradient(0,0,256,0); g.addColorStop(0,'#000'); g.addColorStop(1,'#fff');
+    x.fillStyle=g; x.fillRect(0,0,256,256);
+    const img=new Image();
+    img.onload=()=>{
+      const tmp=document.createElement('canvas'); tmp.width=tmp.height=256; const tx=tmp.getContext('2d');
+      drawImageCoveredTo(tx, img, 256);
+      gray = getGrayscaleFromContext(tx);
+      paintGrayscaleToContext(inX, gray); // enforce grayscale display
+      recolor();
+    };
+    img.src=t.toDataURL();
+    return;
+  }
+
+  if(kind==='checker'){
+    const t=document.createElement('canvas'); t.width=t.height=256; const x=t.getContext('2d'); const cells=16, s=256/cells;
+    for(let y=0;y<cells;y++)for(let c=0;c<cells;c++){ const v=((y+c)&1)?220:30; x.fillStyle=`rgb(${v},${v},${v})`; x.fillRect(c*s,y*s,s,s); }
+    const img=new Image();
+    img.onload=()=>{
+      const tmp=document.createElement('canvas'); tmp.width=tmp.height=256; const tx=tmp.getContext('2d');
+      drawImageCoveredTo(tx, img, 256);
+      gray = getGrayscaleFromContext(tx);
+      paintGrayscaleToContext(inX, gray);
+      recolor();
+    };
+    img.src=t.toDataURL();
+    return;
+  }
+
+  const url = urlMap[kind] || urlMap.dogs;
+  const img = new Image();
+  img.crossOrigin = "anonymous"; // avoid tainting
+  img.onload = ()=>{
+    const tmp=document.createElement('canvas'); tmp.width=tmp.height=256; const tx=tmp.getContext('2d');
+    drawImageCoveredTo(tx, img, 256);
+    // compute luminance and show real grayscale, not color
+    gray = getGrayscaleFromContext(tx);
+    paintGrayscaleToContext(inX, gray);
+    recolor();
+  };
+  img.onerror = ()=>{
+    // robust fallback to gradient
+    const t=document.createElement('canvas'); t.width=t.height=256; const x=t.getContext('2d');
+    const g=x.createLinearGradient(0,0,256,0); g.addColorStop(0,'#000'); g.addColorStop(1,'#fff');
+    x.fillStyle=g; x.fillRect(0,0,256,256);
+    const fallback=new Image();
+    fallback.onload=()=>{
+      const tmp=document.createElement('canvas'); tmp.width=tmp.height=256; const tx=tmp.getContext('2d');
+      drawImageCoveredTo(tx, fallback, 256);
+      gray = getGrayscaleFromContext(tx);
+      paintGrayscaleToContext(inX, gray);
+      recolor();
+    };
+    fallback.src=t.toDataURL();
+  };
+  // set src last (after handlers)
+  img.src = url;
+}
+
+/* ===== Events ===== */
+imgPick.addEventListener('change', ()=> loadSample(imgPick.value));
+bitDepth.addEventListener('change', ()=>{
+  const b=parseInt(bitDepth.value,10); levels = 1<<b; levelsB.textContent=levels; buildCells(); recolor();
+});
+cmapSel.addEventListener('change', ()=>{
+  selected=cmapSel.value; mapName.textContent=selected; drawBigBar(); buildCells(); recolor();
+});
+
+/* ===== Init ===== */
+function drawBigBarInit(){ drawBigBar(); }
+function init(){
+  drawBigBarInit();
+  buildCells();
+  loadSample('dogs'); // default
+  setupHover();
+  levelsB.textContent=levels; mapName.textContent=selected;
+}
+init();
+</script>
+</body>
+</html>
+
