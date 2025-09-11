@@ -7,6 +7,7 @@
 
 [Mario Filters](https://colab.research.google.com/drive/11PtYYEfOu4vxu3AzuzmC9T9b1VxBBfwf?usp=sharing)
 
+[Alexnet Layers](https://colab.research.google.com/drive/1RzxMhuC6wgPhQaAh5yqC40DBMoM5TzKm?usp=sharing)
 
 ## Interactive Labs
 [Bit Depth](https://williamedwardhahn.github.io/MathData25/bit_depth.html)
