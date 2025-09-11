@@ -5,6 +5,8 @@
 
 [Alexnet Filters](https://colab.research.google.com/drive/12EDpdilYa8S6F0ZnhlGtdjulZIa50lFP?usp=sharing)
 
+[Mario Filters](https://colab.research.google.com/drive/11PtYYEfOu4vxu3AzuzmC9T9b1VxBBfwf?usp=sharing)
+
 
 ## Interactive Labs
 [Bit Depth](https://williamedwardhahn.github.io/MathData25/bit_depth.html)
