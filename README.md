@@ -6,6 +6,8 @@ Email: whahn@fau.edu
 ## Notebooks
 [Load Data from Github](https://colab.research.google.com/drive/1ntd-gp2X1rplBODZOs1tAE-3BqqvxSS1?usp=sharing)
 
+[Load Toast](https://colab.research.google.com/drive/1c2655ejRM5TOdkCdFnj9eUkaEyUQc-5H?usp=sharing)
+
 [Alexnet Filters](https://colab.research.google.com/drive/12EDpdilYa8S6F0ZnhlGtdjulZIa50lFP?usp=sharing)
 
 [Mario Filters](https://colab.research.google.com/drive/11PtYYEfOu4vxu3AzuzmC9T9b1VxBBfwf?usp=sharing)
