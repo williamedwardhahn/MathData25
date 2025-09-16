@@ -36,6 +36,8 @@ Email: whahn@fau.edu
 
 [Alexnet Filter](https://williamedwardhahn.github.io/MathData25/alexnet.html)
 
+[Filters](https://setosa.io/ev/image-kernels/#:~:text=An%20image%20kernel%20is%20a,important%20portions%20of%20an%20image.)
+
 
 ## Presentation Links
 [Demos 1](https://docs.google.com/document/d/1xf0PaTv_Pc2hxcHCOmVNEVzL_oX9RWF4T6JbAlzSiU8/edit?usp=sharing)
