@@ -54,6 +54,8 @@ Email: whahn@fau.edu
 
 [The Age of Intelligent Machines](https://www.youtube.com/watch?v=subiSt2Mf4Y)
 
+[Neocognitron](https://www.youtube.com/watch?v=KAazjZoiCd0)
+
 
 
 ## Course Setup
