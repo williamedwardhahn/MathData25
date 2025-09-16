@@ -3,6 +3,9 @@
 ## Contact
 Email: whahn@fau.edu
 
+## FAU Wave
+[Wave](https://www.fau.edu/innovation-and-business-development/fau-wave/fau-wave-competition/)
+
 ## Notebooks
 [Load Data from Github](https://colab.research.google.com/drive/1ntd-gp2X1rplBODZOs1tAE-3BqqvxSS1?usp=sharing)
 
