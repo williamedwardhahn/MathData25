@@ -7,6 +7,9 @@ Email: whahn@fau.edu
 [Wave](https://www.fau.edu/innovation-and-business-development/fau-wave/fau-wave-competition/)
 
 ## Notebooks
+
+[Basic Python](https://colab.research.google.com/drive/1Foy5DVsjM9MeeAhPZWP5KVwc6aLeJCFj?usp=sharing)
+
 [Load Data from Github](https://colab.research.google.com/drive/1ntd-gp2X1rplBODZOs1tAE-3BqqvxSS1?usp=sharing)
 
 [Load Toast](https://colab.research.google.com/drive/1c2655ejRM5TOdkCdFnj9eUkaEyUQc-5H?usp=sharing)
