@@ -6,6 +6,8 @@ Email: whahn@fau.edu
 ## FAU Wave
 [Wave](https://www.fau.edu/innovation-and-business-development/fau-wave/fau-wave-competition/)
 
+[Science Undergraduate Research Poster Competition](https://www.fau.edu/science/science-social/#comp)
+
 ## Notebooks
 
 [Basic Python](https://colab.research.google.com/drive/1Foy5DVsjM9MeeAhPZWP5KVwc6aLeJCFj?usp=sharing)
