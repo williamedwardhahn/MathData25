@@ -10,6 +10,9 @@ i want to run some science experiemtns with alexnet in pytorch with colab, im an
 im am building a startup for AI camera app to work with alexnet cameras to detect _______ provide full slide pitch deck for this
 ```
 
+```
+i am working on a project to rain detector for gold courses os it doesnt run sprinklers when raining use alexnet colab pytorch, i need code, sldies, poster, story, business idea and encouragement
+```
 
 
 ## Contact
