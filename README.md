@@ -6,6 +6,10 @@ HTML5up.com
 i want to run some science experiemtns with alexnet in pytorch with colab, im an using flowers for my dataset, i need to make a poster
 ```
 
+```
+im am building a startup for AI camera app to work with alexnet cameras to detect _______ provide full slide pitch deck for this
+```
+
 
 
 ## Contact
