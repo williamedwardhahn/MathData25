@@ -1,4 +1,10 @@
 # 
+## Notes
+HTML5up.com
+
+```i want to run some science experiemtns with alexnet in pytorch with colab, im an using flowers for my dataset, i need to make a poster'''
+
+
 
 ## Contact
 Email: whahn@fau.edu
