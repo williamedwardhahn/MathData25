@@ -87,6 +87,8 @@ Email: whahn@fau.edu
 
 
 ## Video Links
+[Hamming](https://www.youtube.com/watch?v=AD4b-52jtos&list=PL2FF649D0C4407B30)
+
 [The Computer Programme Series](https://clp.bbcrewind.co.uk/de37d97905d37f58038f2d7c8341ff4b)
 
 [With a Little Help from the Chip Series](https://clp.bbcrewind.co.uk/e6cf9d36e23a3a0b8fd954cc96a0b361)
