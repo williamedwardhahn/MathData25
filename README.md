@@ -7,6 +7,8 @@
 
 ## Notes
 
+[Working Alexnet WandB](https://colab.research.google.com/drive/15c97c5Gq4jkWFyFdUbA_Gi8tBoR1So2v?usp=sharing)
+
 [Chat Alexnet Bugs and Bats Demo](https://chatgpt.com/share/69010c16-8434-800e-9c5e-04daebc59ebc)
 
 [Ants and Bees Demo Data](https://drive.google.com/drive/folders/1Je_gRF8RnhszAAbQhw2IzqM2_7byPVtL?usp=sharing)
