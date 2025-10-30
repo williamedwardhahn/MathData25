@@ -7,6 +7,8 @@
 
 ## Notes
 
+[Load Bugs and Bats](https://colab.research.google.com/drive/1zfhp06M7QnyCPRa-8XRiKhTqfSYAid5X?usp=sharing)
+
 [Alexnet Exp](https://colab.research.google.com/drive/1JaWUWMifBIdBuHIvpEVd_I-pkqgY4-jV?usp=sharing)
 
 [WandB Example](https://colab.research.google.com/drive/1KFuiY7BgBFRD5ooefZL5Rps0E-B-ww7V?usp=sharing)
