@@ -7,6 +7,8 @@
 
 ## Notes
 
+[Alexnet Exp](https://colab.research.google.com/drive/1JaWUWMifBIdBuHIvpEVd_I-pkqgY4-jV?usp=sharing)
+
 [WandB Example](https://colab.research.google.com/drive/1KFuiY7BgBFRD5ooefZL5Rps0E-B-ww7V?usp=sharing)
 
 [Working Alexnet WandB](https://colab.research.google.com/drive/15c97c5Gq4jkWFyFdUbA_Gi8tBoR1So2v?usp=sharing)
