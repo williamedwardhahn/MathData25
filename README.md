@@ -150,7 +150,7 @@ Record a **3–8 minute screencast video** where you present your project “Sha
 | 2. GitHub Website | GitHub Pages live site + repo URL | GitHub | Web version of your project |
 | 3. Colab Notebook | Google Colab link | Colab | Full implementation + experiments + plots |
 | 4. Scientific Poster | Google Slides poster link | Google Slides | Summarized results + visuals from experiments |
-| 5. Presentation Video | YouTube or Drive link | Screencast | 5–10 min presentation |
+| 5. Presentation Video | YouTube or Drive link | Screencast | 3–8 min presentation |
 
 ---
 
