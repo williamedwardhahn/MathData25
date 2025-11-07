@@ -69,7 +69,7 @@ You will also conduct **experiments** to explore model performance under differe
    - 🔹 **Learning rate experiments:** Compare at least two learning rates (e.g., 0.001 vs. 0.0001).
    - 🔹 **Data augmentation:** Train once with and once without augmentation.
    - 🔹 **Architecture comparison:** Try at least one alternative model (e.g., VGG16, ResNet18) for comparison.
-7. Use **Weights & Biases (wandb)** or another tracking library to:
+7. Use **Weights & Biases (wandb)** to:
    - Log your runs and metrics.
    - Generate plots of accuracy, loss, and confusion matrices.
 8. **Visualize and interpret results:**
