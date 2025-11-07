@@ -1,129 +1,160 @@
+# 📘 Math of Data Science — Project Deliverable Instructions
 
-# 
+This project connects the **mathematical theory of data science** to real-world problem-solving using **deep learning**.  
+You’ll explore **AlexNet** and apply it to a **problem of your choice** — from medical imaging to object recognition, or any relevant dataset you select.
 
-## Poster Templates
-[posters](https://docs.google.com/presentation/d/1KApspF0dONLI1OI_AxdJIxxbIYUQIWgA5-J120ChLQ8/edit?usp=sharing)
+Your work will be completed and submitted in **five deliverables**, each building on the previous one.  
+Follow the instructions carefully and submit all links on Canvas by the deadlines.
+
+---
+
+## 🧩 Deliverable 1: Google Slides Presentation
+
+### 🎯 Goal
+Create a professional **Google Slides presentation** that introduces your project idea and explains your technical approach using **AlexNet**.
+
+### 🪜 Instructions
+1. **Create a new Google Slides deck.**
+2. Organize your presentation into two halves:
+   - **Part 1 – Problem Overview (50%)**
+     - Describe your chosen real-world problem and why it matters.
+     - Include background, relevance, and example data or visuals.
+   - **Part 2 – Technical Solution (50%)**
+     - Explain **AlexNet’s architecture** layer by layer (convolution, pooling, fully connected, etc.).
+     - Describe the **training process** — data input, loss function, optimizer, learning rate, epochs, etc.
+     - Explain how your data fits into the model (input size, preprocessing).
+3. Add diagrams, tables, or flowcharts to make concepts clear.
+4. **Set sharing permissions** to “Anyone with the link can view.”
+5. **Submit the Google Slides link** on Canvas.
+
+---
+
+## 🌐 Deliverable 2: GitHub Website
+
+### 🎯 Goal
+Publish your project as a **GitHub Pages website**, presenting your findings in a professional and public-facing format.
+
+### 🪜 Instructions
+1. **Create a GitHub repository** for your project.
+2. Include:
+   - A page describing your **problem and motivation**.
+   - A page summarizing your **technical approach** with AlexNet.
+   - Sections for **visualizations**, **results**, and **takeaways**.
+3. Use simple HTML/CSS, Markdown, or Jekyll templates.
+4. Add screenshots and plots from your Colab experiments.
+5. Enable **GitHub Pages** to host your site.
+6. **Submit both the repository URL and live website URL** on Canvas.
+
+---
+
+## 💻 Deliverable 3: Google Colab Notebook
+
+### 🎯 Goal
+Develop a **Google CoLaboratory notebook** that demonstrates your technical work — a full, working implementation of **AlexNet** trained on your dataset.  
+You will also conduct **experiments** to explore model performance under different conditions.
+
+### 🪜 Instructions
+1. **Create a new Colab notebook** in Python (PyTorch or TensorFlow recommended).
+2. **Implement AlexNet**, adapted to your dataset.
+3. **Load your custom dataset** from Google Drive or GitHub.
+   - Your dataset should relate to your chosen problem (e.g., medical images, animals, objects, etc.).
+4. **Perform proper data preprocessing**, including:
+   - Resizing images to the correct input size for AlexNet (usually 224×224).
+   - Normalization and optional **data augmentation** (e.g., flips, rotations, color jitter).
+5. **Train and validate** your model:
+   - Split the data into training and validation sets.
+   - Track **accuracy** and **loss** over epochs.
+   - Save your trained model weights.
+6. **Run multiple experiments** and document the effects:
+   - 🔹 **Batch size experiments:** Test at least two batch sizes (e.g., 16, 64).
+   - 🔹 **Learning rate experiments:** Compare at least two learning rates (e.g., 0.001 vs. 0.0001).
+   - 🔹 **Data augmentation:** Train once with and once without augmentation.
+   - 🔹 **Architecture comparison:** Try at least one alternative model (e.g., VGG16, ResNet18) for comparison.
+7. Use **Weights & Biases (wandb)** or another tracking library to:
+   - Log your runs and metrics.
+   - Generate plots of accuracy, loss, and confusion matrices.
+8. **Visualize and interpret results:**
+   - Include plots of training vs. validation accuracy and loss.
+   - Discuss what each experiment shows about model behavior.
+9. Test that your notebook runs fully without errors.
+10. Set permissions to “Anyone with the link can view.”
+11. **Submit the Colab link** on Canvas.
+
+---
+
+## 📊 Deliverable 4: Scientific Poster
+
+### 🎯 Goal
+Create a **research-style academic poster** summarizing your project and experiments.  
+Your poster should look professional and be suitable for an academic conference.
+
+### 🪜 Instructions
+1. Open **Google Slides** and **change the slide size** to poster dimensions (e.g., 48" × 36").
+2. Organize your poster into clear sections:
+   - **Title and Author Information**
+     - Include project title, your name, course name, and semester.
+   - **Problem Statement**
+     - Describe your chosen problem and why you tackled it.
+   - **Methods**
+     - Summarize how you implemented and trained AlexNet.
+     - Explain how you structured your experiments.
+   - **Experiments and Results**
+     - Present your key experimental findings, including:
+       - Batch size comparison results.
+       - Learning rate tuning results.
+       - Data augmentation vs. no augmentation.
+       - Network comparison (e.g., AlexNet vs. ResNet).
+     - Include charts, tables, and plots from your Colab notebook.
+   - **Discussion**
+     - Interpret the results: What patterns did you observe? What improved accuracy the most?
+     - Note challenges or surprising outcomes.
+   - **Conclusions and Future Work**
+     - Summarize what you learned.
+     - Suggest next steps or improvements.
+3. Use readable fonts, consistent colors, and logical flow.
+4. You can find **FAU poster templates** by searching online for *“FAU Google Slides poster templates.”*
+5. Set sharing permissions to “Anyone with the link can view.”
+6. **Submit your poster link** on Canvas.
+
+---
+
+## 🎥 Deliverable 5: Presentation Video
+
+### 🎯 Goal
+Record a **3–8 minute screencast video** where you present your project “Shark Tank-style,” mixing enthusiasm, clarity, and technical detail.
+
+### 🪜 Instructions
+1. Use your **Google Slides presentation** as your visual guide.
+2. Record your screen using:
+   - Loom  
+   - Zoom recording  
+   - OBS Studio  
+   - QuickTime or any other screen recorder
+3. Structure your video in two parts:
+   - **Part 1 – Pitch (Motivation and Problem)**
+     - Explain your chosen problem and why it matters.
+   - **Part 2 – Technical Overview**
+     - Walk through your model, experiments, and results.
+     - Show visualizations from your notebook or poster.
+4. Keep the tone confident and engaging.
+5. Duration: **3 to 8 minutes.**
+6. Upload the video to **YouTube (unlisted)** or **Google Drive** and make sure it’s viewable.
+7. **Submit the video link** on Canvas.
+
+---
+
+## ✅ Submission Summary
+
+| Deliverable | What to Submit | Platform | Key Requirements |
+|--------------|----------------|-----------|------------------|
+| 1. Google Slides Presentation | Google Slides link | Google Slides | Problem overview + AlexNet explanation |
+| 2. GitHub Website | GitHub Pages live site + repo URL | GitHub | Web version of your project |
+| 3. Colab Notebook | Google Colab link | Colab | Full implementation + experiments + plots |
+| 4. Scientific Poster | Google Slides poster link | Google Slides | Summarized results + visuals from experiments |
+| 5. Presentation Video | YouTube or Drive link | Screencast | 5–10 min presentation |
+
+---
 
 
-## Notes
+---
 
-[Load Bugs and Bats](https://colab.research.google.com/drive/1zfhp06M7QnyCPRa-8XRiKhTqfSYAid5X?usp=sharing)
-
-[Alexnet Exp](https://colab.research.google.com/drive/1JaWUWMifBIdBuHIvpEVd_I-pkqgY4-jV?usp=sharing)
-
-[WandB Example](https://colab.research.google.com/drive/1KFuiY7BgBFRD5ooefZL5Rps0E-B-ww7V?usp=sharing)
-
-[Working Alexnet WandB](https://colab.research.google.com/drive/15c97c5Gq4jkWFyFdUbA_Gi8tBoR1So2v?usp=sharing)
-
-[Chat Alexnet Bugs and Bats Demo](https://chatgpt.com/share/69010c16-8434-800e-9c5e-04daebc59ebc)
-
-[Ants and Bees Demo Data](https://drive.google.com/drive/folders/1Je_gRF8RnhszAAbQhw2IzqM2_7byPVtL?usp=sharing)
-
-
-HTML5up.com
-
-https://templatemo.com
-
-
-
-```
-i want to run some science experiemtns with alexnet in pytorch with colab, im an using flowers for my dataset, i need to make a poster
-```
-
-```
-im am building a startup for AI camera app to work with alexnet cameras to detect _______ provide full slide pitch deck for this
-```
-
-```
-i am working on a project to rain detector for gold courses os it doesnt run sprinklers when raining use alexnet colab pytorch, i need code, sldies, poster, story, business idea and encouragement
-```
-
-## Exp Ideas
-
-```
-🧪 Overview of the 7 Experiments
-#	Experiment	Variable Tested	Hypothesis
-1	Augmentation vs No Augmentation	Data augmentation	Augmented training improves accuracy and F1.
-2	Pretrained vs Not Pretrained	Model initialization	Using pretrained ImageNet weights converges faster and achieves higher accuracy.
-3	Batch Size	16 vs 64	Smaller batches may generalize better; larger ones train faster but risk overfitting.
-4	Learning Rate	1e-3 vs 1e-4	Optimal learning rate yields higher validation accuracy.
-5	Optimizer Type	Adam vs SGD	Different optimizers affect convergence and stability.
-6	B/W vs RGB Input	1-channel grayscale vs 3-channel color	Color cues help detect rain more accurately.
-7	Hardware Accelerator	CPU vs GPU vs TPU	GPU/TPU drastically cut training time with similar accuracy.
-```
-
-
-
-
-## Contact
-Email: whahn@fau.edu
-
-## FAU Wave
-[Wave](https://www.fau.edu/innovation-and-business-development/fau-wave/fau-wave-competition/)
-
-[Science Undergraduate Research Poster Competition](https://www.fau.edu/science/science-social/#comp)
-
-## Notebooks
-
-[Basic Python](https://colab.research.google.com/drive/1Foy5DVsjM9MeeAhPZWP5KVwc6aLeJCFj?usp=sharing)
-
-[Load Data from Github](https://colab.research.google.com/drive/1ntd-gp2X1rplBODZOs1tAE-3BqqvxSS1?usp=sharing)
-
-[Load Toast](https://colab.research.google.com/drive/1c2655ejRM5TOdkCdFnj9eUkaEyUQc-5H?usp=sharing)
-
-[Alexnet Filters](https://colab.research.google.com/drive/12EDpdilYa8S6F0ZnhlGtdjulZIa50lFP?usp=sharing)
-
-[Mario Filters](https://colab.research.google.com/drive/11PtYYEfOu4vxu3AzuzmC9T9b1VxBBfwf?usp=sharing)
-
-[Flowers 101 Filters](https://colab.research.google.com/drive/1VnB-wwTwgjm4i1kDoIlgLdIu69j8iW9Y?usp=sharing)
-
-## Interactive Labs
-[Bit Depth](https://williamedwardhahn.github.io/MathData25/bit_depth.html)
-
-[Color Maps](https://williamedwardhahn.github.io/MathData25/colors.html)
-
-[Pixel Combinatorics](https://williamedwardhahn.github.io/MathData25/pixelcombo.html)
-
-[Image Parameters](https://williamedwardhahn.github.io/MathData25/image1.html)
-
-[Image Gamma](https://williamedwardhahn.github.io/MathData25/gamma.html)
-
-[Matrix Multiplication](https://williamedwardhahn.github.io/MathData25/matrix_multiplication_lab.html)
-
-[Convolution](https://williamedwardhahn.github.io/MathData25/Conv1_a.html)
-
-[Pooling](https://williamedwardhahn.github.io/MathData25/pool.html)
-
-[Alexnet Filter](https://williamedwardhahn.github.io/MathData25/alexnet.html)
-
-[Filters](https://setosa.io/ev/image-kernels/#:~:text=An%20image%20kernel%20is%20a,important%20portions%20of%20an%20image.)
-
-[Image Kernel](https://setosa.io/ev/image-kernels/)
-
-[Conv1](https://colab.research.google.com/drive/1_IlVfU2u2AH0rb9n_yojHD85pG0dUr8f?usp=sharing)
-
-## Presentation Links
-[Demos 1](https://docs.google.com/document/d/1xf0PaTv_Pc2hxcHCOmVNEVzL_oX9RWF4T6JbAlzSiU8/edit?usp=sharing)
-
-
-## Video Links
-[Hamming](https://www.youtube.com/watch?v=AD4b-52jtos&list=PL2FF649D0C4407B30)
-
-[The Computer Programme Series](https://clp.bbcrewind.co.uk/de37d97905d37f58038f2d7c8341ff4b)
-
-[With a Little Help from the Chip Series](https://clp.bbcrewind.co.uk/e6cf9d36e23a3a0b8fd954cc96a0b361)
-
-[Computers 101 Playlist](https://youtube.com/playlist?list=PLWmIsQcAzRkpFcFL0SLGO8ee7qSyAQT-Y&si=VnFTPAEwyRwat9DO)
-
-[Alexnet](https://www.youtube.com/watch?v=AgkfIQ4IGaM)
-
-[The Age of Intelligent Machines](https://www.youtube.com/watch?v=subiSt2Mf4Y)
-
-[Neocognitron](https://www.youtube.com/watch?v=KAazjZoiCd0)
-
-
-
-## Course Setup
-[Part 1](https://github.com/williamedwardhahn/MathData25/blob/main/setup1.md)
-
-[Part 2](https://github.com/williamedwardhahn/MathData25/blob/main/setup2.md)
