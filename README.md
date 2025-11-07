@@ -1,7 +1,6 @@
 # 📘 Project Deliverable Instructions
 
-This project connects the **mathematical theory of data science** to real-world problem-solving using **deep learning**.  
-You’ll use **AlexNet** and apply it to a **problem of your choice** — from medical imaging to object recognition, or any relevant dataset you select.
+You’ll use **AlexNet** and apply it to a **problem of your choice**.
 
 Your work will be completed and submitted in **five deliverables**, each building on the previous one.  
 Follow the instructions carefully and submit all links on Canvas by the deadlines.
