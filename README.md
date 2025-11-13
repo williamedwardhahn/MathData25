@@ -155,5 +155,5 @@ Record a **3–8 minute screencast video** where you present your project “Sha
 ---
 
 
----
-
+[Alexnet Exp Notebook
+](https://colab.research.google.com/drive/1eKlmWfS2Awu2AvDV4KSYFL5aWpEEVTce?usp=sharing)
