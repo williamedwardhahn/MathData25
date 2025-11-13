@@ -1,3 +1,7 @@
+[Alexnet Final Project Template](https://colab.research.google.com/drive/1R8l5OgRUwuX_NIXdircWQ6h1bwQLcQ8h?usp=sharing)
+
+
+
 # 📘 Project Deliverable Instructions
 
 You’ll use **AlexNet** and apply it to a **problem of your choice**.
