@@ -1,3 +1,5 @@
+[Final Project](https://docs.google.com/document/d/1LpOX_A2IxxzAb3NGvCOKfp7Azos74Cj_X6cNQgochtQ/edit?usp=sharing)
+
 [Alexnet Final Project Template](https://colab.research.google.com/drive/1R8l5OgRUwuX_NIXdircWQ6h1bwQLcQ8h?usp=sharing)
 
 
